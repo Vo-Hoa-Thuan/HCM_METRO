@@ -1,13 +1,15 @@
 
 import { Link } from 'react-router-dom';
-import { MapPin, Route, Ticket, Menu, X } from 'lucide-react';
+import { MapPin, Route, Ticket, Menu, X, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -46,6 +48,20 @@ const Navbar = () => {
                   <span>Vé</span>
                 </Link>
               </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/support" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>Hổ trợ</span>
+                </Link>
+              </Button>
+              {isAuthenticated && (
+                <Button variant="ghost" asChild>
+                  <Link to="/admin" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    <span>Quản lý</span>
+                  </Link>
+                </Button>
+              )}
             </nav>
           )}
 
@@ -53,12 +69,20 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             {!isMobile ? (
               <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/login">Đăng nhập</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link to="/register">Đăng ký</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <Button variant="outline" size="sm" onClick={logout}>
+                    Đăng xuất
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to="/login">Đăng nhập</Link>
+                    </Button>
+                    <Button size="sm" asChild>
+                      <Link to="/register">Đăng ký</Link>
+                    </Button>
+                  </>
+                )}
               </>
             ) : (
               <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
@@ -94,13 +118,29 @@ const Navbar = () => {
               <span>Vé</span>
             </Link>
           </Button>
+          {isAuthenticated && (
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link to="/admin" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                <Settings className="h-4 w-4" />
+                <span>Quản lý</span>
+              </Link>
+            </Button>
+          )}
           <div className="pt-2 flex flex-col gap-2">
-            <Button variant="outline" className="w-full" asChild>
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Đăng nhập</Link>
-            </Button>
-            <Button className="w-full" asChild>
-              <Link to="/register" onClick={() => setMobileMenuOpen(false)}>Đăng ký</Link>
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="outline" className="w-full" onClick={() => { logout(); setMobileMenuOpen(false); }}>
+                Đăng xuất
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Đăng nhập</Link>
+                </Button>
+                <Button className="w-full" asChild>
+                  <Link to="/register" onClick={() => setMobileMenuOpen(false)}>Đăng ký</Link>
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       )}

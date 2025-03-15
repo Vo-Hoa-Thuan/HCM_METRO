@@ -1,10 +1,24 @@
+
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+  display: flex;
+  margin-top: 2rem;
+  flex-direction: column;
+  min-height: 100vh; /* Đảm bảo #root chiếm toàn bộ chiều cao của viewport */
 }
 
+.main-content {
+  flex: 1; /* Đảm bảo nội dung chính chiếm hết không gian còn lại */
+}
+
+footer {
+  width: 100%;
+  margin-top: auto; /* Đảm bảo footer luôn nằm ở cuối trang */
+}
+
+/* Các quy tắc CSS khác giữ nguyên */
 .logo {
   height: 6em;
   padding: 1.5em;

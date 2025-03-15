@@ -78,7 +78,6 @@
   }
 }
 
-
 @layer base {
   * {
     @apply border-border;
@@ -126,13 +125,14 @@
   }
 
   .metro-card {
-    @apply rounded-xl bg-white shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg;
+    @apply rounded-xl bg-white shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1;
   }
 
   .metro-button {
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 
     bg-accent text-white hover:bg-accent/90 
-    focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2;
+    focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2
+    transform hover:-translate-y-0.5 active:translate-y-0;
   }
 
   .metro-input {
@@ -167,6 +167,68 @@
   .page-exit-active {
     @apply opacity-0;
   }
+
+  /* 3D and animation styles */
+  .perspective-800 {
+    perspective: 800px;
+  }
+
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .hover-3d {
+    @apply transition-transform duration-300 ease-out;
+    transform: perspective(800px) rotateX(0) rotateY(0);
+  }
+
+  .hover-3d:hover {
+    transform: perspective(800px) rotateX(2deg) rotateY(-2deg);
+  }
+
+  .card-3d-effect {
+    @apply transition-all duration-300 ease-out shadow-lg;
+    transform: perspective(800px) rotateX(0) rotateY(0);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-3d-effect:hover {
+    transform: perspective(800px) rotateX(2deg) rotateY(-4deg) translateZ(10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .motion-component {
+    @apply transition-transform;
+  }
+
+  /* Floating animation */
+  .floating {
+    animation: floating 3s ease-in-out infinite;
+  }
+
+  @keyframes floating {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  /* Pulse animation */
+  .pulse-soft {
+    animation: pulse-soft 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
 }
 
 /* Route line styles */
@@ -188,4 +250,35 @@
 
 .route-line-yellow {
   @apply stroke-metro-yellow stroke-[4px];
+}
+
+/* New 3D animation keyframes */
+@keyframes fadeIn3D {
+  from {
+    opacity: 0;
+    transform: perspective(800px) rotateX(-10deg) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) rotateX(0) translateY(0);
+  }
+}
+
+@keyframes spinIn3D {
+  from {
+    opacity: 0;
+    transform: perspective(800px) rotateY(-45deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) rotateY(0) scale(1);
+  }
+}
+
+.animate-fade-in-3d {
+  animation: fadeIn3D 0.6s ease-out forwards;
+}
+
+.animate-spin-in-3d {
+  animation: spinIn3D 0.7s ease-out forwards;
 }
