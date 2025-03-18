@@ -6,12 +6,12 @@ import MetroLinesTab from "@/components/admin/MetroLinesTab";
 import StationsTab from "@/components/admin/StationsTab";
 import TicketsTab from "@/components/admin/TicketsTab";
 import SearchBar from "@/components/admin/SearchBar";
+import UsersTab from "@/components/admin/UsersTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LogOut, Home } from "lucide-react";
 import { Link } from "react-router-dom";
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+ 
 
 
 const Admin = () => {
@@ -38,7 +38,7 @@ const Admin = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Quản lý Metro</h1>
-            <p className="text-muted-foreground">Quản lý tuyến tàu, trạm và vé</p>
+            <p className="text-muted-foreground">Quản lý người dùng, tuyến tàu, trạm và vé</p>
           </div>
           
           <div className="flex items-center gap-4">
@@ -59,14 +59,19 @@ const Admin = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="lines" className="space-y-4">
+        <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="users">Người dùng</TabsTrigger>
             <TabsTrigger value="lines">Tuyến Metro</TabsTrigger>
             <TabsTrigger value="stations">Trạm</TabsTrigger>
             <TabsTrigger value="tickets">Vé</TabsTrigger>
           </TabsList>
 
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+          <TabsContent value="users">
+            <UsersTab searchTerm={searchTerm} />
+          </TabsContent>
 
           <TabsContent value="lines">
             <MetroLinesTab searchTerm={searchTerm} />
@@ -79,6 +84,7 @@ const Admin = () => {
           <TabsContent value="tickets">
             <TicketsTab searchTerm={searchTerm} />
           </TabsContent>
+
         </Tabs>
       </div>
     </div>

@@ -1,4 +1,15 @@
 
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  registeredAt: string; // ISO 8601 date string
+  tickets: string[]; // Danh sách ID vé đã mua
+  favoriteStations?: string[]; // Danh sách ID ga yêu thích
+  preferredLanguage: "vi" | "en";
+};
+
 export type Station = {
   id: string;
   name: string;
@@ -44,6 +55,37 @@ export type Ticket = {
   validityPeriod?: string;
 };
 
+
+export const users: User[] = [
+  {
+    id: "u1",
+    name: "Nguyễn Văn A",
+    email: "nguyenvana@example.com",
+    phone: "0987654321",
+    registeredAt: "2024-01-15T08:30:00Z",
+    tickets: ["t1", "t3"],
+    favoriteStations: ["s1", "s9"],
+    preferredLanguage: "vi",
+  },
+  {
+    id: "u2",
+    name: "Trần Thị B",
+    email: "tranthib@example.com",
+    registeredAt: "2024-02-10T12:45:00Z",
+    tickets: ["t2", "t4", "t5"],
+    favoriteStations: ["s13", "s19"],
+    preferredLanguage: "en",
+  },
+  {
+    id: "u3",
+    name: "Lê Quốc C",
+    email: "lequocc@example.com",
+    phone: "0909123456",
+    registeredAt: "2024-03-05T09:15:00Z",
+    tickets: ["t1", "t6"],
+    preferredLanguage: "vi",
+  },
+];
 // Sample station data
 export const stations: Station[] = [
   // Tuyến Đỏ (Line 1) - Ben Thanh - Suoi Tien
