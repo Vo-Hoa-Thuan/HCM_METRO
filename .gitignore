@@ -8,7 +8,7 @@ dist/
 docker-compose.yml
 
 # Ignore environment files containing secrets
-.env/
+.env
 Backend/.env
 
 # Ignore service account key file
