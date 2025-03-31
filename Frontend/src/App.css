@@ -1,0 +1,56 @@
+
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  margin-top: 2rem;
+  flex-direction: column;
+  min-height: 100vh; /* Đảm bảo #root chiếm toàn bộ chiều cao của viewport */
+}
+
+.main-content {
+  flex: 1; /* Đảm bảo nội dung chính chiếm hết không gian còn lại */
+}
+
+footer {
+  width: 100%;
+  margin-top: auto; /* Đảm bảo footer luôn nằm ở cuối trang */
+}
+
+/* Các quy tắc CSS khác giữ nguyên */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
