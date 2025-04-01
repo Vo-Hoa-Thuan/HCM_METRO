@@ -23,15 +23,15 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
 });
 
-const handleGoogleLogin = async () => {
-  window.location.href = "http://localhost:5000/auth/google?prompt=select_account&access_type=offline";
-};
+// const handleGoogleLogin = async () => {
+//   window.location.href = "http://localhost:5000/auth/google?prompt=select_account&access_type=offline";
+// };
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loading } = useAuth();
+  const { login, loginWithGoogle, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
 
@@ -155,7 +155,7 @@ const Login = () => {
 
                 <Button
                   className="w-full flex items-center gap-3 bg-white text-black border border-gray-300 shadow-sm hover:bg-gray-100"
-                  onClick={handleGoogleLogin}
+                  onClick={loginWithGoogle}
                   disabled={loading}
                 >
                   <img src="/icongg.webp" alt="Google Logo" className="h-5 bg-white rounded-md w-5" />

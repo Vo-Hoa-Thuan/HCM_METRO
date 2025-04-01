@@ -3,10 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-// SECRET KEY dùng để ký JWT
-const JWT_SECRET = process.env.JWT_SECRET;
-
-
 exports.registerUser = async (req, res) => {
     try {
         const { phoneNumber, name, password } = req.body;

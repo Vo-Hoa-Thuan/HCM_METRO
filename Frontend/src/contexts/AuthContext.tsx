@@ -9,10 +9,28 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedToken = localStorage.getItem("accessToken");
+
     if (storedToken) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
-      setUser({ token: storedToken, isAuthenticated: true }); 
+      setUser({ token: storedToken, isAuthenticated: true });
     }
+
+    // Kiểm tra nếu đăng nhập Google
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+
+    if (token) {
+      console.log("📌 Nhận token từ Google:", token);
+
+      localStorage.setItem("accessToken", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      setUser({ token, isAuthenticated: true });
+
+      // Xóa token khỏi URL để tránh lưu trữ trong lịch sử trình duyệt
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     setLoading(false);
   }, []);
 
@@ -38,13 +56,13 @@ export const AuthProvider = ({ children }) => {
   
   
 
-//   // 🔄 Tự động refresh token mỗi 9 giây (vì token cũ hết hạn sau 10 giây)
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//         refreshAccessToken();
-//     }, 9 * 60 * 1000); // 🔄 Refresh mỗi 9 phút
-//     return () => clearInterval(interval);
-// }, []);
+  // 🔄 Tự động refresh token mỗi 9 giây (vì token cũ hết hạn sau 10 giây)
+  useEffect(() => {
+    const interval = setInterval(() => {
+        refreshAccessToken();
+    }, 9 * 60 * 1000); // 🔄 Refresh mỗi 9 phút
+    return () => clearInterval(interval);
+}, []);
 
 
   const login = async (phoneNumber, password) => {
@@ -72,30 +90,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    setTimeout(async () => {
-      const expiredToken = localStorage.getItem("accessToken");
-      console.log("🕒 Kiểm tra token cũ:", expiredToken);
+  // useEffect(() => {
+  //   setTimeout(async () => {
+  //     const expiredToken = localStorage.getItem("accessToken");
+  //     console.log("🕒 Kiểm tra token cũ:", expiredToken);
   
-      try {
-        const response = await axios.get("http://localhost:5000/protected-route", {
-          headers: { Authorization: `Bearer ${expiredToken}` },
-        });
-        console.log("✅ Token cũ vẫn hoạt động:", response.data);
-      } catch (error) {
-        console.error("❌ Token cũ bị từ chối:", error.response?.status, error.response?.data);
-      }
-    }, 11000); // Test sau 11 giây (token đã hết hạn)
-  }, []);
-  
+  //     try {
+  //       const response = await axios.get("http://localhost:5000/protected-route", {
+  //         headers: { Authorization: `Bearer ${expiredToken}` },
+  //       });
+  //       console.log("✅ Token cũ vẫn hoạt động:", response.data);
+  //     } catch (error) {
+  //       console.error("❌ Token cũ bị từ chối:", error.response?.status, error.response?.data);
+  //     }
+  //   }, 11000); // Test sau 11 giây (token đã hết hạn)
+  // }, []);
 
-  const logout = () => {
-    localStorage.removeItem("accessToken");
-    setUser(null);
+  // 🔑 Đăng nhập bằng Google (chuyển hướng)
+  const loginWithGoogle = () => {
+    window.location.href = "http://localhost:5000/auth/google";
   };
 
+
+ // 🚪 Đăng xuất
+ const logout = async () => {
+  try {
+    await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
+  } catch (error) {
+    console.error("Lỗi đăng xuất:", error);
+  }
+
+  localStorage.removeItem("accessToken");
+  delete axios.defaults.headers.common["Authorization"];
+  setUser(null);
+};
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: user?.isAuthenticated || false, login, logout, loginWithGoogle, loading }}>
       {children}
     </AuthContext.Provider>
   );

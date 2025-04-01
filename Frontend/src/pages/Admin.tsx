@@ -36,7 +36,7 @@ import { Card, CardContent } from "@/components/ui/card";
 const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const [activeTab, setActiveTab] = useState("dashboard");
 
   // Kiểm tra nếu user chưa đăng nhập

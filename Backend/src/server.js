@@ -2,86 +2,68 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
 const EventEmitter = require("events");
-const cookieParser = require("cookie-parser"); // 🔥 Thêm cookie-parser
+const connectDB = require("./config/db");
 
-dotenv.config();
-mongoose.set("strictQuery", false);
-
-require("./config/passportConfig"); // Cấu hình Passport
+dotenv.config(); 
 
 const userRoutes = require("./routes/user.routes");
 const ticketRoutes = require("./routes/ticket.routes");
 const authRoutes = require("./routes/auth.routes");
-const User = require("./models/user.model");
+
+// Cấu hình passport
+require("./config/passportConfig");
 
 const app = express();
 app.use(express.json());
 
-// 🔥 Thêm cookie-parser để đọc cookies từ request
+// Sử dụng cookie-parser để đọc cookies từ request
 app.use(cookieParser());
 
-// CORS
+// CORS - Cấu hình để cho phép ứng dụng frontend kết nối với backend
 app.use(
   cors({
-    origin: "http://localhost:5713", 
+    origin: process.env.LOCALHOST, // Địa chỉ frontend của bạn
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-// Cấu hình session
+// Cấu hình session để duy trì trạng thái đăng nhập
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-session-secret",
+    secret: process.env.SESSION_SECRET || "your-session-secret", // Mã bảo mật cho session
     resave: false,
     saveUninitialized: true,
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Tăng giới hạn sự kiện
 EventEmitter.defaultMaxListeners = 30;
 
-const MONGO_URI = process.env.MONGO_URI;
-if (!MONGO_URI) {
-  console.error("❌ Thiếu biến môi trường MONGO_URI");
-  process.exit(1);
-}
-
-async function removeOldIndexes() {
-  const indexes = await User.collection.indexes();
-  const emailIndex = indexes.find(index => index.name === "email_1");
-  
-  if (emailIndex) {
-      console.log("🔄 Đang xóa index email_1...");
-      await User.collection.dropIndex("email_1");
-      console.log("✅ Đã xóa index email_1!");
-  }
-}
-
-// ✅ Bọc trong async function để đảm bảo kết nối MongoDB trước khi chạy server
 async function startServer() {
   try {
-    await mongoose.connect(MONGO_URI);
+    await connectDB();
     console.log("✅ Kết nối MongoDB thành công");
 
-    // Xóa index cũ nếu tồn tại
-    await removeOldIndexes();
-
-    // Sử dụng routes
+    // Sử dụng các route cho API
     app.use("/users", userRoutes);
     app.use("/tickets", ticketRoutes);
     app.use("/auth", authRoutes);
 
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server chạy trên cổng ${PORT}`));
+    // Cấu hình cổng cho server
+    const PORT = process.env.PORT;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server chạy trên cổng ${PORT}`);
+    });
   } catch (err) {
     console.error("❌ Lỗi kết nối MongoDB:", err);
   }
 }
 
+// Khởi động server
 startServer();

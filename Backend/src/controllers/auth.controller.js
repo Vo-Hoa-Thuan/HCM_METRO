@@ -137,8 +137,6 @@ exports.refreshToken = async (req, res) => {
     }
 };
 
-
-
 // 🔹 [POST] Đăng xuất
 exports.logout = async (req, res) => {
     try {
@@ -167,18 +165,36 @@ exports.googleAuth = passport.authenticate("google", {
 exports.googleCallback = (req, res, next) => {
     passport.authenticate("google", { session: false }, async (err, user) => {
         if (err || !user) {
+            console.error("Lỗi khi xác thực Google:", err);
             return res.redirect("/login?error=google_auth_failed");
         }
 
-        const { accessToken, refreshToken } = generateTokens(user);
+        // Kiểm tra user đã tồn tại trong DB chưa
+        let existingUser = await User.findOne({ email: user.email });
+
+        if (!existingUser) {
+            existingUser = await User.create({
+                email: user.email,
+                fullName: user.displayName,
+                googleId: user.id,
+                avatar: user.photos[0].value
+            });
+        }
+
+        // Tạo Access Token & Refresh Token
+        const { accessToken, refreshToken } = generateTokens(existingUser);
 
         // Lưu Refresh Token vào HttpOnly Cookie
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: "Strict"
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "Lax"
         });
 
-        res.redirect(`http://localhost:5713?token=${accessToken}`);
+        console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
+
+        // Chuyển hướng về trang Admin
+        res.redirect(`http://localhost:5713/admin?token=${accessToken}`);
     })(req, res, next);
 };
+
