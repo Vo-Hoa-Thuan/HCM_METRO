@@ -1,4 +1,5 @@
 
+
 import React, { HTMLAttributes, forwardRef, useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +12,7 @@ export interface MotionProps extends HTMLAttributes<HTMLDivElement> {
     rotate?: number;
     rotateX?: number;
     rotateY?: number;
+    height?: string | number; // Added height property
   };
   initial?: {
     opacity?: number;
@@ -20,6 +22,7 @@ export interface MotionProps extends HTMLAttributes<HTMLDivElement> {
     rotate?: number;
     rotateX?: number;
     rotateY?: number;
+    height?: string | number; // Added height property
   };
   transition?: {
     duration?: number;

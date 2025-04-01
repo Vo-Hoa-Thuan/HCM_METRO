@@ -11,6 +11,8 @@ export type User = {
 };
 
 export type Station = {
+  address: string;
+  image: any;
   id: string;
   name: string;
   nameVi: string;
@@ -23,6 +25,8 @@ export type Station = {
 };
 
 export type MetroLine = {
+  alerts: any;
+  alerts: any;
   id: string;
   name: string;
   nameVi: string;
@@ -47,6 +51,7 @@ export type RouteSegment = {
 };
 
 export type Ticket = {
+  restrictions: any;
   id: string;
   type: string;
   name: string;

@@ -1,4 +1,5 @@
 
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -11,7 +12,7 @@ const Card = React.forwardRef<
     ref={ref}
     className={cn(
       "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300",
-      is3d ? "hover-3d transform hover:translate-y-[-5px] hover:shadow-lg" : "",
+      is3d || "hover-3d transform hover:translate-y-[-5px] hover:shadow-lg", // Default to 3D effect
       className
     )}
     {...props}
@@ -79,3 +80,4 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter"
 
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
+
