@@ -12,7 +12,7 @@ export const mockTickets = [
     restrictions: 'Chỉ sử dụng một lần trong ngày',
     isDiscounted: false,
     discountPercentage: 0,
-    status: 'active'
+    status: 'inactive'
   },
   {
     id: 'ticket-return-01',

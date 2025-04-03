@@ -28,9 +28,9 @@ export default {
 				admin: '#00B2BF',
         		staff: '#3498DB',  
        	 		user: '#F1AF00',
-				active: '#2ECC71',
+				active: '#33CC66',
 				inactive: '#898989',
-				block: '#FF5733',
+				block: '#CC0000',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'

@@ -2,38 +2,30 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Edit, 
-  Trash2, 
-  Users, 
-  Plus, 
-  ChevronDown,
-  AlertCircle,
-  Loader2,
-  Mail,
-  Phone,
-  User,
-  Download,
-  Settings,
-  ShieldCheck,
-  Calendar,
-  MapPin,
-  Activity
-} from "lucide-react";
+import { Edit, Trash2, Users, Plus, ChevronDown, AlertCircle, Loader2, Mail, Phone,
+         User,Download, Settings, ShieldCheck, Calendar, MapPin, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "@/components/ui/motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllUsers, createUser, updateUser, deleteUser, exportUsers } from "@/api/metroApi";
+import { getAllUsers, createUser, updateUser, deleteUser, exportUsers } from "@/api/userApi";
 import UserForm from "./UserForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 
 interface UsersTabProps {
   searchTerm: string;
 }
+
+const timeOptions = [
+  { label: "Hôm nay", value: "day" },
+  { label: "Tuần này", value: "week" },
+  { label: "Tháng này", value: "month" },
+  { label: "Năm nay", value: "year" },
+];
 
 const UsersTab = ({ searchTerm }: UsersTabProps) => {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
@@ -58,9 +50,11 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       language: 'vi'
     }
   });
+  
   const [selectedTab, setSelectedTab] = useState("all");
   const [useMockData, setUseMockData] = useState(true);
-  
+  const [selectedTime, setSelectedTime] = useState("month");
+  const [userCount, setUserCount] = useState(0);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -164,8 +158,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       });
     }
   });
-
-  // const userData = useMockData ? sampleUsers : (usersData?.users || []);
+  
   const userData = usersData || [];   
   console.log("Dữ liệu API nhận được:", usersData);
   console.log("Danh sách users:", usersData);
@@ -235,7 +228,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       name: '',
       email: '',
       password: '',
-      role: 'User',
+      role: 'user',
       phoneNumber: '',
       address: '',
       status: 'active',
@@ -378,14 +371,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Quản lý người dùng</h2>
         <div className="flex items-center gap-2">
-          {useMockData && (
-            <Badge variant="outline" className="mr-2">
-              Dữ liệu mẫu
-            </Badge>
-          )}
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
+          <Button variant="outline" className="flex items-center gap-2"
             onClick={handleExportData}
           >
             <Download className="h-4 w-4" />
@@ -428,7 +414,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
           <CardContent>
             <div className="flex items-center justify-between">
               <div className="text-3xl font-bold">{totalUsers}</div>
-              <Users className="h-8 w-8 text-muted-foreground" />
+              <Users className="h-8 w-8  text-gray-700" />
             </div>
             <div className="mt-4">
               <div className="flex items-center justify-between mb-1 text-xs">
@@ -460,27 +446,44 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
                    <span className="text-sm text-user">Người dùng ({totalUsers - adminCount - staffCount})</span>
                  </div>
                </div>
-               <ShieldCheck className="h-8 w-8 text-gray-400" />
+               <ShieldCheck className="h-8 w-8 text-gray-700" />
              </div>
            </CardContent>
-
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Hoạt động gần đây</CardTitle>
+        <Card className="shadow-md rounded-lg p-4 border border-gray-200">
+          <CardHeader className="pb-3 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-md font-semibold text-gray-700">Hoạt động gần đây</CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-md px-3 py-1.5 text-gray-900 bg-gray-50 border border-gray-600 hover:bg-gray-700 transition">
+                    {timeOptions.find(opt => opt.value === selectedTime)?.label}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-13 bg-white shadow-md rounded-md py-1 border border-gray-400">
+                  {timeOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => setSelectedTime(option.value)}
+                      className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-300 transition"
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <p>Người dùng mới trong tháng</p>
-                <p className="text-2xl font-bold mt-1">12</p>
+              <div>
+                <p className="text-gray-500 text-sm">Người dùng mới ({timeOptions.find(opt => opt.value === selectedTime)?.label})</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{userCount}</p>
               </div>
-              <Activity className="h-8 w-8 text-muted-foreground" />
+              <Activity className="h-8 w-8 text-gray-700" />
             </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              Cập nhật lần cuối: {new Date().toLocaleDateString('vi-VN')}
-            </p>
+            <p className="text-xs text-gray-500 mt-3">Cập nhật lần cuối: {new Date().toLocaleDateString("vi-VN")}</p>
           </CardContent>
         </Card>
       </div>
@@ -567,11 +570,13 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
               
               <CardContent className="pb-2">
                 <div className="flex flex-col space-y-1.5">
-                  <div className="flex items-center text-sm text-muted-foreground">
+                  {user.email && (
+                    <div className="flex items-center text-sm text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 mr-2" />
                     <span>{user.email}</span>
-                  </div>
-                  
+                    </div>
+                  )}
+                                    
                   {user.phoneNumber && (
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Phone className="h-3.5 w-3.5 mr-2" />
