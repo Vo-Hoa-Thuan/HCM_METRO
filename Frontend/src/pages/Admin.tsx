@@ -6,6 +6,8 @@ import MetroLinesTab from "@/components/admin/MetroLinesTab";
 import StationsTab from "@/components/admin/StationsTab";
 import TicketsTab from "@/components/admin/TicketsTab";
 import UsersTab from "@/components/admin/UsersTab";
+import UserProfileTab from "@/components/admin/UserProfileTab";
+import SystemSettingsTab from "@/components/admin/SystemSettingsTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import SearchBar from "@/components/admin/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +20,13 @@ import {
   Bell,
   User,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Users,
+  Ticket,
+  Train,
+  MapPin,
+  UserCog,
+  Cog
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { 
@@ -31,26 +39,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion } from "@/components/ui/motion";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { Toaster } from "@/components/ui/toaster";
 
 const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, logout } = useAuth();
-  const navigate = useNavigate(); 
+  const { user, isAuthenticated, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const navigate = useNavigate();
+  const [unreadNotifications, setUnreadNotifications] = useState(3);
 
-  // Kiểm tra nếu user chưa đăng nhập
+  // Redirect to login if not authenticated
   useEffect(() => {
-    console.log("🔍 isAuthenticated trong Admin:", user?.isAuthenticated);
-    if (!user?.isAuthenticated) {
+    if (!isAuthenticated) {
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [isAuthenticated, navigate]);
 
-  // Nếu chưa đăng nhập, không render Admin
-  if (!user?.isAuthenticated) {
+  // If not authenticated, don't render the admin page
+  if (!isAuthenticated) {
     return null;
   }
+
+  // Function to clear notifications
+  const clearNotifications = () => {
+    setUnreadNotifications(0);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/80 to-white">
@@ -78,10 +91,72 @@ const Admin = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      {unreadNotifications > 0 && (
+                        <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuLabel className="flex items-center justify-between">
+                      <span>Thông báo</span>
+                      {unreadNotifications > 0 && (
+                        <Button variant="ghost" size="sm" onClick={clearNotifications}>
+                          Đánh dấu tất cả đã đọc
+                        </Button>
+                      )}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {unreadNotifications > 0 ? (
+                      <>
+                        <DropdownMenuItem className="p-3 cursor-pointer">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">Cập nhật hệ thống</span>
+                              <span className="text-xs text-muted-foreground">5 phút trước</span>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              Phiên bản 1.5.0 đã sẵn sàng để cài đặt
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="p-3 cursor-pointer">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">Người dùng mới</span>
+                              <span className="text-xs text-muted-foreground">1 giờ trước</span>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              Có 5 người dùng mới đăng ký trong hôm nay
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="p-3 cursor-pointer">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">Cảnh báo bảo mật</span>
+                              <span className="text-xs text-muted-foreground">1 ngày trước</span>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              Phát hiện đăng nhập lạ từ thiết bị mới
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <div className="p-4 text-center text-muted-foreground">
+                        Không có thông báo mới
+                      </div>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="p-2 text-center cursor-pointer">
+                      Xem tất cả thông báo
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </motion.div>
               
               <Link to="/">
@@ -118,11 +193,11 @@ const Admin = () => {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveTab("profile")}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Hồ sơ cá nhân</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveTab("settings")}>
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Cài đặt</span>
                     </DropdownMenuItem>
@@ -135,10 +210,6 @@ const Admin = () => {
                 </DropdownMenu>
               </motion.div>
             </div>
-
-
-
-
           </div>
         </div>
       </div>
@@ -173,32 +244,43 @@ const Admin = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
+            className="overflow-auto"
           >
             <TabsList className="bg-muted/50 p-1 shadow-sm">
-              <TabsTrigger value="dashboard" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Tổng quan
+              <TabsTrigger value="dashboard" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <LineChart className="h-4 w-4" />
+                <span>Tổng quan</span>
               </TabsTrigger>
-              <TabsTrigger value="lines" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Tuyến Metro
+              <TabsTrigger value="lines" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <Train className="h-4 w-4" />
+                <span>Tuyến Metro</span>
               </TabsTrigger>
-              <TabsTrigger value="stations" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Trạm
+              <TabsTrigger value="stations" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>Trạm</span>
               </TabsTrigger>
-              <TabsTrigger value="tickets" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Vé
+              <TabsTrigger value="tickets" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <Ticket className="h-4 w-4" />
+                <span>Vé</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Người dùng
+              <TabsTrigger value="users" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>Người dùng</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <UserCog className="h-4 w-4" />
+                <span>Hồ sơ</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <Cog className="h-4 w-4" />
+                <span>Cài đặt</span>
               </TabsTrigger>
             </TabsList>
           </motion.div>
 
-          {activeTab !== "dashboard" && (
+          {activeTab !== "dashboard" && activeTab !== "profile" && activeTab !== "settings" && (
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           )}
-
-
-
 
           <TabsContent value="dashboard" className="space-y-4">
             <AdminDashboard />
@@ -219,8 +301,17 @@ const Admin = () => {
           <TabsContent value="users" className="bg-transparent">
             <UsersTab searchTerm={searchTerm} />
           </TabsContent>
+
+          <TabsContent value="profile" className="bg-transparent">
+            <UserProfileTab />
+          </TabsContent>
+
+          <TabsContent value="settings" className="bg-transparent">
+            <SystemSettingsTab />
+          </TabsContent>
         </Tabs>
       </div>
+      <Toaster />
     </div>
   );
 };

@@ -60,7 +60,7 @@ exports.login = async (req, res) => {
           sameSite: "strict"
       });
 
-      res.json({ accessToken, refreshToken });
+      res.json({ accessToken, refreshToken , role: user.role});
 
   } catch (error) {
       console.error("Lỗi server:", error);

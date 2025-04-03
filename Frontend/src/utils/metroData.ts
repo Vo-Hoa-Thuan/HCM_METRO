@@ -25,8 +25,7 @@ export type Station = {
 };
 
 export type MetroLine = {
-  alerts: any;
-  alerts: any;
+
   id: string;
   name: string;
   nameVi: string;
@@ -102,7 +101,9 @@ export const stations: Station[] = [
     lines: ["red", "blue", "purple"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: true,
-    isUnderground: true
+    isUnderground: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s2",
@@ -112,7 +113,9 @@ export const stations: Station[] = [
     lines: ["red"],
     facilities: ["elevator", "ticket-machine"],
     isInterchange: false,
-    isUnderground: true
+    isUnderground: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s3",
@@ -122,7 +125,9 @@ export const stations: Station[] = [
     lines: ["red"],
     facilities: ["elevator", "ticket-machine", "restroom"],
     isInterchange: false,
-    isUnderground: true
+    isUnderground: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s4",
@@ -131,7 +136,9 @@ export const stations: Station[] = [
     coordinates: [106.714511, 10.801131],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s5",
@@ -140,7 +147,9 @@ export const stations: Station[] = [
     coordinates: [106.719940, 10.803595],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s6",
@@ -149,7 +158,9 @@ export const stations: Station[] = [
     coordinates: [106.730584, 10.803864],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s7",
@@ -158,7 +169,9 @@ export const stations: Station[] = [
     coordinates: [106.747449, 10.803864],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s8",
@@ -167,7 +180,9 @@ export const stations: Station[] = [
     coordinates: [106.766760, 10.803864],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s9",
@@ -176,7 +191,9 @@ export const stations: Station[] = [
     coordinates: [106.770554, 10.814576],
     lines: ["red", "green"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: true
+    isInterchange: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s10",
@@ -185,7 +202,9 @@ export const stations: Station[] = [
     coordinates: [106.776647, 10.824858],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s11",
@@ -194,7 +213,9 @@ export const stations: Station[] = [
     coordinates: [106.781368, 10.832131],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s12",
@@ -203,7 +224,9 @@ export const stations: Station[] = [
     coordinates: [106.789179, 10.840453],
     lines: ["red"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s13",
@@ -212,7 +235,9 @@ export const stations: Station[] = [
     coordinates: [106.796388, 10.847725],
     lines: ["red", "yellow"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: true
+    isInterchange: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s14",
@@ -222,7 +247,9 @@ export const stations: Station[] = [
     lines: ["red"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: false,
-    isDepot: true
+    isDepot: true,
+    address: "",
+    image: undefined
   },
 
   // Tuyến Xanh (Line 2) - Thu Thiem - Cu Chi
@@ -233,7 +260,9 @@ export const stations: Station[] = [
     coordinates: [106.720541, 10.782318],
     lines: ["blue"],
     facilities: ["elevator", "ticket-office", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s16",
@@ -242,7 +271,9 @@ export const stations: Station[] = [
     coordinates: [106.712408, 10.808211],
     lines: ["blue"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s17",
@@ -251,7 +282,9 @@ export const stations: Station[] = [
     coordinates: [106.734038, 10.816534],
     lines: ["blue", "brown"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: true
+    isInterchange: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s18",
@@ -260,7 +293,9 @@ export const stations: Station[] = [
     coordinates: [106.749615, 10.833182],
     lines: ["blue"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s19",
@@ -269,7 +304,9 @@ export const stations: Station[] = [
     coordinates: [106.669777, 10.837952],
     lines: ["blue", "yellow"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: true
+    isInterchange: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s20",
@@ -279,7 +316,9 @@ export const stations: Station[] = [
     lines: ["blue"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: false,
-    isDepot: true
+    isDepot: true,
+    address: "",
+    image: undefined
   },
 
   // Tuyến Xanh lá (Line 3) - Ben Thanh - Binh Tan
@@ -290,7 +329,9 @@ export const stations: Station[] = [
     coordinates: [106.648273, 10.794539],
     lines: ["green"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s22",
@@ -299,7 +340,9 @@ export const stations: Station[] = [
     coordinates: [106.667156, 10.782318],
     lines: ["green", "purple"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: true
+    isInterchange: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s23",
@@ -308,7 +351,9 @@ export const stations: Station[] = [
     coordinates: [106.642952, 10.751741],
     lines: ["green"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s24",
@@ -318,7 +363,9 @@ export const stations: Station[] = [
     lines: ["green"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: false,
-    isDepot: true
+    isDepot: true,
+    address: "",
+    image: undefined
   },
 
   // Tuyến Tím (Line 4) - Lang Cha Ca - Hiep Phuoc Port
@@ -329,7 +376,9 @@ export const stations: Station[] = [
     coordinates: [106.659043, 10.796098],
     lines: ["purple"],
     facilities: ["elevator", "ticket-office", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s26",
@@ -338,7 +387,9 @@ export const stations: Station[] = [
     coordinates: [106.697701, 10.741079],
     lines: ["purple"],
     facilities: ["elevator", "ticket-machine"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s27",
@@ -348,7 +399,9 @@ export const stations: Station[] = [
     lines: ["purple"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: false,
-    isDepot: true
+    isDepot: true,
+    address: "",
+    image: undefined
   },
 
   // Tuyến Vàng (Line 5) - Can Giuoc Bus Terminal - Saigon Bridge
@@ -360,7 +413,9 @@ export const stations: Station[] = [
     lines: ["yellow"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: false,
-    isDepot: true
+    isDepot: true,
+    address: "",
+    image: undefined
   },
   {
     id: "s29",
@@ -369,7 +424,9 @@ export const stations: Station[] = [
     coordinates: [106.724707, 10.789589],
     lines: ["yellow"],
     facilities: ["elevator", "ticket-machine", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
 
   // Tuyến Nâu (Line 6) - Ba Queo - Phu Lam Roundabout
@@ -380,7 +437,9 @@ export const stations: Station[] = [
     coordinates: [106.637587, 10.760064],
     lines: ["brown"],
     facilities: ["elevator", "ticket-office", "restroom"],
-    isInterchange: false
+    isInterchange: false,
+    address: "",
+    image: undefined
   },
   {
     id: "s31",
@@ -390,7 +449,9 @@ export const stations: Station[] = [
     lines: ["brown"],
     facilities: ["elevator", "ticket-office", "restroom"],
     isInterchange: false,
-    isDepot: true
+    isDepot: true,
+    address: "",
+    image: undefined
   }
 ];
 
@@ -410,6 +471,7 @@ export const metroLines: MetroLine[] = [
       peakHours: "5 phút",
       offPeakHours: "10 phút",
     },
+
   },
   {
     id: "blue",
@@ -425,6 +487,7 @@ export const metroLines: MetroLine[] = [
       peakHours: "6 phút",
       offPeakHours: "12 phút",
     },
+   
   },
   {
     id: "green",
@@ -440,6 +503,7 @@ export const metroLines: MetroLine[] = [
       peakHours: "6 phút",
       offPeakHours: "12 phút",
     },
+    
   },
   {
     id: "purple",
@@ -455,6 +519,7 @@ export const metroLines: MetroLine[] = [
       peakHours: "7 phút",
       offPeakHours: "14 phút",
     },
+    
   },
   {
     id: "yellow",
@@ -470,6 +535,7 @@ export const metroLines: MetroLine[] = [
       peakHours: "7 phút",
       offPeakHours: "14 phút",
     },
+    
   },
   {
     id: "brown",
@@ -485,6 +551,7 @@ export const metroLines: MetroLine[] = [
       peakHours: "8 phút",
       offPeakHours: "15 phút",
     },
+    
   }
 ];
 
@@ -496,6 +563,7 @@ export const tickets: Ticket[] = [
     name: "Single Journey",
     price: 15000,
     description: "Valid for one journey on any line",
+    restrictions: undefined
   },
   {
     id: "t2",
@@ -503,6 +571,7 @@ export const tickets: Ticket[] = [
     name: "Return Journey",
     price: 25000,
     description: "Valid for a return journey on the same day",
+    restrictions: undefined
   },
   {
     id: "t3",
@@ -511,6 +580,7 @@ export const tickets: Ticket[] = [
     price: 50000,
     description: "Unlimited travel for one day",
     validityPeriod: "1 day",
+    restrictions: undefined
   },
   {
     id: "t4",
@@ -519,6 +589,7 @@ export const tickets: Ticket[] = [
     price: 200000,
     description: "Unlimited travel for seven consecutive days",
     validityPeriod: "7 days",
+    restrictions: undefined
   },
   {
     id: "t5",
@@ -527,6 +598,7 @@ export const tickets: Ticket[] = [
     price: 750000,
     description: "Unlimited travel for thirty consecutive days",
     validityPeriod: "30 days",
+    restrictions: undefined
   },
 ];
 

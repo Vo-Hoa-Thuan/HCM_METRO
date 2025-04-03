@@ -54,8 +54,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
   
-  
-
   // 🔄 Tự động refresh token mỗi 9 giây (vì token cũ hết hạn sau 10 giây)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -74,6 +72,7 @@ export const AuthProvider = ({ children }) => {
         console.log("🔥 Refresh Token mới:", data.refreshToken);
 
         localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("role", data.role);
         if (data.refreshToken) {
           localStorage.setItem("refreshToken", data.refreshToken);
         }
@@ -83,28 +82,12 @@ export const AuthProvider = ({ children }) => {
           axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         }
 
-        setUser({ token: data.accessToken, isAuthenticated: true }); // ✅ Cập nhật user đúng
+        setUser({ token: data.accessToken, isAuthenticated: true });
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error.response?.data?.message || error.message);
     }
   };
-
-  // useEffect(() => {
-  //   setTimeout(async () => {
-  //     const expiredToken = localStorage.getItem("accessToken");
-  //     console.log("🕒 Kiểm tra token cũ:", expiredToken);
-  
-  //     try {
-  //       const response = await axios.get("http://localhost:5000/protected-route", {
-  //         headers: { Authorization: `Bearer ${expiredToken}` },
-  //       });
-  //       console.log("✅ Token cũ vẫn hoạt động:", response.data);
-  //     } catch (error) {
-  //       console.error("❌ Token cũ bị từ chối:", error.response?.status, error.response?.data);
-  //     }
-  //   }, 11000); // Test sau 11 giây (token đã hết hạn)
-  // }, []);
 
   // 🔑 Đăng nhập bằng Google (chuyển hướng)
   const loginWithGoogle = () => {

@@ -25,6 +25,12 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				admin: '#00B2BF',
+        		staff: '#3498DB',  
+       	 		user: '#F1AF00',
+				active: '#2ECC71',
+				inactive: '#898989',
+				block: '#FF5733',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'

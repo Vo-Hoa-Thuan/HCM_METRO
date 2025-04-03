@@ -1,285 +1,486 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Edit, 
-  Trash2,
-  LayoutGrid,
-  ListFilter,
-  MapPin,
-  Train,
-  Clock,
-  Wifi,
-  ShoppingBag,
-  CreditCard,
-  Utensils,
-  Baby,
+  Trash2, 
+  MapPin, 
   Plus,
-  ImageIcon,
-  AccessibilityIcon
+  Wifi,
+  Ticket,
+  ParkingSquare,
+  Accessibility,
+  Bath,
+  ChevronDown,
+  AlertCircle,
+  Loader2
 } from "lucide-react";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { metroLines, stations } from "@/utils/metroData";
-import { motion } from "@/components/ui/motion";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "@/components/ui/motion";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAllStations, createStation, updateStation, deleteStation, getAllLines } from "@/api/metroApi";
+import StationForm from "./StationForm";
 
 interface StationsTabProps {
   searchTerm: string;
 }
 
 const StationsTab = ({ searchTerm }: StationsTabProps) => {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [expandedStation, setExpandedStation] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentStation, setCurrentStation] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    nameVi: '',
+    coordinates: [106.629664, 10.823099],
+    lines: [],
+    facilities: ['ticket_machine'],
+    isInterchange: false,
+    address: '',
+    status: 'operational',
+    dailyPassengers: 0,
+    hasWifi: false,
+    hasParking: false,
+    hasTicketMachine: true,
+    hasAccessibility: true,
+    hasBathroom: true
+  });
   
-  const filteredStations = stations.filter(
-    (station) =>
-      station.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      station.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  // Get metro line color by ID
-  const getLineColor = (lineId: string) => {
-    const line = metroLines.find(line => line.id === lineId);
-    return line ? line.color : "#ccc";
-  };
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Generate facility icon
-  const getFacilityIcon = (facility: string) => {
-    switch (facility.toLowerCase()) {
-      case "wifi":
-        return <Wifi className="h-4 w-4" />;
-      case "shopping":
-        return <ShoppingBag className="h-4 w-4" />;
-      case "wheelchair":
-      case "elevator":
-        return <AccessibilityIcon className="h-4 w-4" />;
-      case "ticketing":
-      case "ticket-office":
-      case "ticket-machine":
-        return <CreditCard className="h-4 w-4" />;
-      case "food":
-      case "restroom":
-        return <Utensils className="h-4 w-4" />;
-      case "childcare":
-        return <Baby className="h-4 w-4" />;
-      default:
-        return <div className="h-4 w-4" />;
+  const { 
+    data: stationsData, 
+    isLoading: isLoadingStations,
+    error: stationsError 
+  } = useQuery({
+    queryKey: ['stations'],
+    queryFn: () => getAllStations()
+  });
+
+  const { 
+    data: linesData 
+  } = useQuery({
+    queryKey: ['metroLines'],
+    queryFn: () => getAllLines()
+  });
+
+  const createStationMutation = useMutation({
+    mutationFn: createStation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stations'] });
+      setIsCreateDialogOpen(false);
+      toast({
+        title: "Thành công",
+        description: "Tạo trạm mới thành công",
+      });
+      resetForm();
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể tạo trạm: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateStationMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => updateStation(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stations'] });
+      setIsEditDialogOpen(false);
+      toast({
+        title: "Thành công",
+        description: "Cập nhật trạm thành công",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể cập nhật trạm: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteStationMutation = useMutation({
+    mutationFn: deleteStation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stations'] });
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "Thành công",
+        description: "Xóa trạm thành công",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Lỗi",
+        description: `Không thể xóa trạm: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const toggleExpandStation = (stationId: string) => {
+    if (expandedStation === stationId) {
+      setExpandedStation(null);
+    } else {
+      setExpandedStation(stationId);
     }
   };
 
+  const filteredStations = stationsData?.stations?.filter(
+    (station: any) => 
+      station.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      station.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const getLineColor = (lineId: string) => {
+    const line = linesData?.lines?.find((l: any) => l.id === lineId);
+    return line?.color || "#999999";
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    if (name.includes('.')) {
+      const [parent, index] = name.split('.');
+      const updatedArray = [...(formData[parent as keyof typeof formData] as any[])];
+      updatedArray[Number(index)] = value;
+      setFormData({ ...formData, [parent]: updatedArray });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setFormData({ ...formData, [name]: checked });
+  };
+
+  const handleLineChange = (lineId: string) => {
+    setFormData(prev => {
+      const currentLines = [...prev.lines];
+      if (currentLines.includes(lineId)) {
+        return { ...prev, lines: currentLines.filter(id => id !== lineId) };
+      } else {
+        return { ...prev, lines: [...currentLines, lineId] };
+      }
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      nameVi: '',
+      coordinates: [106.629664, 10.823099],
+      lines: [],
+      facilities: ['ticket_machine'],
+      isInterchange: false,
+      address: '',
+      status: 'operational',
+      dailyPassengers: 0,
+      hasWifi: false,
+      hasParking: false,
+      hasTicketMachine: true,
+      hasAccessibility: true,
+      hasBathroom: true
+    });
+  };
+
+  const handleEditClick = (station: any) => {
+    setCurrentStation(station);
+    setFormData({
+      name: station.name,
+      nameVi: station.nameVi,
+      coordinates: [...station.coordinates],
+      lines: [...station.lines],
+      facilities: [...station.facilities],
+      isInterchange: station.isInterchange,
+      address: station.address || '',
+      status: station.status,
+      dailyPassengers: station.dailyPassengers || 0,
+      hasWifi: station.hasWifi || false,
+      hasParking: station.hasParking || false,
+      hasTicketMachine: station.hasTicketMachine === undefined ? true : station.hasTicketMachine,
+      hasAccessibility: station.hasAccessibility === undefined ? true : station.hasAccessibility,
+      hasBathroom: station.hasBathroom === undefined ? true : station.hasBathroom
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (station: any) => {
+    setCurrentStation(station);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCreateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const facilities = [];
+    if (formData.hasWifi) facilities.push('wifi');
+    if (formData.hasParking) facilities.push('parking');
+    if (formData.hasTicketMachine) facilities.push('ticket_machine');
+    if (formData.hasAccessibility) facilities.push('accessibility');
+    if (formData.hasBathroom) facilities.push('bathroom');
+    
+    const stationData = {
+      id: `station-${Date.now()}`,
+      ...formData,
+      facilities,
+    };
+    createStationMutation.mutate(stationData as any);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (currentStation) {
+      const facilities = [];
+      if (formData.hasWifi) facilities.push('wifi');
+      if (formData.hasParking) facilities.push('parking');
+      if (formData.hasTicketMachine) facilities.push('ticket_machine');
+      if (formData.hasAccessibility) facilities.push('accessibility');
+      if (formData.hasBathroom) facilities.push('bathroom');
+      
+      const updatedData = {
+        ...formData,
+        facilities,
+      };
+      
+      updateStationMutation.mutate({
+        id: currentStation.id,
+        data: updatedData
+      });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (currentStation) {
+      deleteStationMutation.mutate(currentStation.id);
+    }
+  };
+
+  if (isLoadingStations) {
+    return (
+      <div className="flex justify-center items-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Đang tải dữ liệu...</span>
+      </div>
+    );
+  }
+
+  if (stationsError) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+        <h3 className="text-lg font-medium">Không thể tải dữ liệu</h3>
+        <p className="text-muted-foreground mt-1">
+          {stationsError instanceof Error ? stationsError.message : 'Đã xảy ra lỗi khi tải dữ liệu trạm.'}
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant={viewMode === "grid" ? "default" : "outline"} 
-            size="sm"
-            className="flex items-center gap-1 h-9"
-            onClick={() => setViewMode("grid")}
-          >
-            <LayoutGrid className="h-4 w-4" />
-            <span className="hidden sm:inline">Lưới</span>
-          </Button>
-          <Button 
-            variant={viewMode === "list" ? "default" : "outline"} 
-            size="sm"
-            className="flex items-center gap-1 h-9"
-            onClick={() => setViewMode("list")}
-          >
-            <ListFilter className="h-4 w-4" />
-            <span className="hidden sm:inline">Danh sách</span>
-          </Button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Quản lý trạm Metro</h2>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Thêm trạm mới
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>Thêm trạm mới</DialogTitle>
+              <DialogDescription>
+                Điền các thông tin dưới đây để tạo trạm metro mới.
+              </DialogDescription>
+            </DialogHeader>
+            <StationForm
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleSelectChange={handleSelectChange}
+              handleCheckboxChange={handleCheckboxChange}
+              handleLineChange={handleLineChange}
+              handleSubmit={handleCreateSubmit}
+              availableLines={linesData?.lines || []}
+              isSubmitting={createStationMutation.isPending}
+              onCancel={() => setIsCreateDialogOpen(false)}
+              submitLabel="Tạo trạm"
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Grid View */}
-      {viewMode === "grid" && (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredStations.map((station, index) => (
-            <motion.div
-              key={station.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-            >
-              <Card className="hover-3d overflow-hidden">
-                <div className="bg-muted h-36 relative">
-                  {station.image ? (
-                    <img 
-                      src={station.image} 
-                      alt={station.nameVi} 
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                      <ImageIcon className="h-10 w-10 text-muted-foreground/50" />
-                    </div>
-                  )}
-                  
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                    <div className="flex flex-wrap gap-1">
-                      {station.lines.map(lineId => (
-                        <Badge 
-                          key={lineId}
-                          style={{ backgroundColor: getLineColor(lineId) }}
-                          className="text-white"
-                        >
-                          Tuyến {lineId}
-                        </Badge>
-                      ))}
-                    </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filteredStations.map((station: any, index: number) => (
+          <motion.div
+            key={station.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mr-3">
+                    <MapPin className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">{station.nameVi}</CardTitle>
+                    <CardDescription>{station.name}</CardDescription>
                   </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" onClick={() => handleEditClick(station)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={() => handleDeleteClick(station)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => toggleExpandStation(station.id)}
+                    className={expandedStation === station.id ? "bg-accent/10" : ""}
+                  >
+                    <ChevronDown className={`h-4 w-4 transition-transform ${expandedStation === station.id ? "transform rotate-180" : ""}`} />
+                  </Button>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pb-2">
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {station.lines.map((lineId: string) => (
+                    <Badge 
+                      key={lineId} 
+                      style={{ 
+                        backgroundColor: getLineColor(lineId),
+                        color: '#fff'
+                      }}
+                    >
+                      {lineId}
+                    </Badge>
+                  ))}
+                </div>
                 
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between">
-                    <div>
-                      <CardTitle className="text-lg font-medium">
-                        {station.nameVi}
-                      </CardTitle>
-                      <CardDescription>{station.name}</CardDescription>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    <span>
+                      {station.coordinates[1].toFixed(3)}, {station.coordinates[0].toFixed(3)}
+                    </span>
                   </div>
-                </CardHeader>
-                
-                <CardContent>
-                  <Tabs defaultValue="info" className="w-full">
-                    <TabsList className="w-full grid grid-cols-3">
-                      <TabsTrigger value="info" className="text-xs">Thông tin</TabsTrigger>
-                      <TabsTrigger value="schedule" className="text-xs">Lịch trình</TabsTrigger>
-                      <TabsTrigger value="facilities" className="text-xs">Tiện ích</TabsTrigger>
-                    </TabsList>
+                  
+                  {station.isInterchange && (
+                    <Badge variant="outline" className="text-xs">
+                      Chuyển tuyến
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+              
+              {expandedStation === station.id && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="px-6 pt-2 pb-4"
+                >
+                  <div className="border-t pt-4">
+                    <div className="grid grid-cols-2 gap-y-3">
+                      <div className="flex items-center text-sm">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${station.hasWifi ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <Wifi className="h-3 w-3" />
+                        </div>
+                        <span>WiFi</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${station.hasParking ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <ParkingSquare className="h-3 w-3" />
+                        </div>
+                        <span>Bãi đỗ xe</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${station.hasTicketMachine ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <Ticket className="h-3 w-3" />
+                        </div>
+                        <span>Máy bán vé</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${station.hasAccessibility ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <Accessibility className="h-3 w-3" />
+                        </div>
+                        <span>Lối đi người khuyết tật</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${station.hasBathroom ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                          <Bath className="h-3 w-3" />
+                        </div>
+                        <span>Nhà vệ sinh</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mr-2">
+                          <span className="text-xs font-semibold">KH</span>
+                        </div>
+                        <span>{station.dailyPassengers.toLocaleString()} lượt/ngày</span>
+                      </div>
+                    </div>
                     
-                    <TabsContent value="info" className="pt-3 pb-1">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-start">
-                          <MapPin className="h-4 w-4 text-muted-foreground mr-2 mt-0.5" />
-                          <span className="text-muted-foreground">
-                            {station.address || "Chưa có thông tin địa chỉ"}
-                          </span>
-                        </div>
-                        <div className="flex items-start">
-                          <Train className="h-4 w-4 text-muted-foreground mr-2 mt-0.5" />
-                          <span className="text-muted-foreground">
-                            {station.isInterchange 
-                              ? "Trạm chuyển tuyến" 
-                              : "Trạm thường"}
-                            {station.isDepot && ", Depot"}
-                          </span>
-                        </div>
+                    {station.address && (
+                      <div className="mt-3 text-sm">
+                        <p className="text-muted-foreground">Địa chỉ:</p>
+                        <p>{station.address}</p>
                       </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="schedule" className="pt-3 pb-1">
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-start">
-                          <Clock className="h-4 w-4 text-muted-foreground mr-2 mt-0.5" />
-                          <div>
-                            <div className="text-muted-foreground">Giờ mở cửa:</div>
-                            <div>05:00 - 23:00</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-xs border-t pt-2 mt-2">
-                          <span className="text-muted-foreground">Giờ cao điểm:</span>
-                          <span>3-5 phút/chuyến</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Giờ thường:</span>
-                          <span>7-10 phút/chuyến</span>
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="facilities" className="pt-3 pb-1">
-                      <div className="grid grid-cols-3 gap-2">
-                        {station.facilities.map((facility, idx) => (
-                          <div key={idx} className="flex flex-col items-center text-center p-1">
-                            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mb-1">
-                              {getFacilityIcon(facility)}
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {facility}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
-      
-      {/* List View */}
-      {viewMode === "list" && (
-        <div className="space-y-3">
-          {filteredStations.map((station, index) => (
-            <motion.div
-              key={station.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.03 }}
-            >
-              <Card className="hover-3d">
-                <CardContent className="p-0">
-                  <div className="flex items-center p-4">
-                    <div className="h-10 w-10 bg-muted rounded-full flex items-center justify-center mr-4">
-                      <MapPin className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{station.nameVi}</h3>
-                      <p className="text-sm text-muted-foreground">{station.name}</p>
-                    </div>
-                    <div className="flex items-center gap-2 mr-2">
-                      <div className="flex">
-                        {station.lines.map(lineId => (
-                          <div 
-                            key={lineId} 
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white border-2 border-white text-xs -ml-1 first:ml-0"
-                            style={{ backgroundColor: getLineColor(lineId) }}
-                          >
-                            {lineId}
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {station.isInterchange && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                          Chuyển tuyến
-                        </Badge>
-                      )}
-                    </div>
-                    <div>
-                      <Button variant="ghost" size="sm" className="mr-1">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-red-500">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
+                </motion.div>
+              )}
+              
+              <CardFooter className="px-6 py-3 text-xs text-muted-foreground">
+                <div className="flex justify-between items-center w-full">
+                  <Badge 
+                    variant={
+                      station.status === 'operational' ? 'default' : 
+                      station.status === 'construction' ? 'secondary' : 
+                      station.status === 'planned' ? 'outline' : 'destructive'
+                    }
+                    className="text-xs"
+                  >
+                    {station.status === 'operational' ? 'Đang hoạt động' : 
+                     station.status === 'construction' ? 'Đang xây dựng' : 
+                     station.status === 'planned' ? 'Đã lên kế hoạch' : 'Đã đóng'}
+                  </Badge>
+                  <Button size="sm" variant="ghost" onClick={() => toggleExpandStation(station.id)}>
+                    {expandedStation === station.id ? "Thu gọn" : "Chi tiết"}
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
       
       {filteredStations.length === 0 && (
         <div className="text-center py-12">
@@ -288,16 +489,62 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
               <MapPin className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
-          <h3 className="text-lg font-medium">Không tìm thấy trạm</h3>
+          <h3 className="text-lg font-medium">Không tìm thấy trạm nào</h3>
           <p className="text-muted-foreground mt-1 mb-4">
             Không có trạm nào khớp với tìm kiếm của bạn.
           </p>
-          <Button>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Thêm trạm mới
           </Button>
         </div>
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa trạm</DialogTitle>
+            <DialogDescription>
+              Chỉnh sửa thông tin cho trạm {currentStation?.nameVi}.
+            </DialogDescription>
+          </DialogHeader>
+          <StationForm
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleSelectChange={handleSelectChange}
+            handleCheckboxChange={handleCheckboxChange}
+            handleLineChange={handleLineChange}
+            handleSubmit={handleEditSubmit}
+            availableLines={linesData?.lines || []}
+            isSubmitting={updateStationMutation.isPending}
+            onCancel={() => setIsEditDialogOpen(false)}
+            submitLabel="Cập nhật"
+          />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác. Trạm "{currentStation?.nameVi}" sẽ bị xóa vĩnh viễn.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {deleteStationMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
