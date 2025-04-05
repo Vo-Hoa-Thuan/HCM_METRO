@@ -1,19 +1,35 @@
 
 import { Link } from 'react-router-dom';
-import { MapPin, Route, Ticket, Menu, X, Settings } from 'lucide-react';
+import { MapPin, Route, Ticket, Menu, X, Settings, User, ChevronDown, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion } from '../ui/motion';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+
+
 
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  function setActiveTab(arg0: string): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
@@ -54,7 +70,7 @@ const Navbar = () => {
                   <span>Hổ trợ</span>
                 </Link>
               </Button>
-              {isAuthenticated && (
+              {isAuthenticated && user?.role === "admin" || user?.role === "staff" && (
                 <Button variant="ghost" asChild>
                   <Link to="/admin" className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
@@ -70,9 +86,46 @@ const Navbar = () => {
             {!isMobile ? (
               <>
                 {isAuthenticated ? (
-                  <Button variant="outline" size="sm" onClick={logout}>
-                    Đăng xuất
-                  </Button>
+                   <motion.div
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   transition={{ duration: 0.5, delay: 0.3 }}
+                 >
+                   
+                     <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                         <Button variant="ghost" className="flex items-center gap-2">
+                           <div className="h-8 w-8 rounded-full bg-accent/10 flex items-center justify-center">
+                             <User className="h-4 w-4 text-accent" />
+                           </div>
+                           <div className="flex flex-col items-start">
+                             <span className="text-sm font-medium">{user?.name}</span>
+                             <span className="text-xs text-muted-foreground">
+                               {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                             </span>
+                           </div>
+                           <ChevronDown className="h-4 w-4" />
+                         </Button>
+                       </DropdownMenuTrigger>
+                       <DropdownMenuContent align="end" className="w-56">
+                         <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
+                         <DropdownMenuSeparator />
+                         <DropdownMenuItem onClick={() => setActiveTab("profile")}>
+                           <User className="mr-2 h-4 w-4" />
+                           <span>Hồ sơ cá nhân</span>
+                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => setActiveTab("settings")}>
+                           <Settings className="mr-2 h-4 w-4" />
+                           <span>Cài đặt</span>
+                         </DropdownMenuItem>
+                         <DropdownMenuSeparator />
+                         <DropdownMenuItem onClick={logout}>
+                           <LogOut className="mr-2 h-4 w-4" />
+                           <span>Đăng xuất</span>
+                         </DropdownMenuItem>
+                       </DropdownMenuContent>
+                     </DropdownMenu>
+                 </motion.div>
                 ) : (
                   <>
                     <Button variant="outline" size="sm" asChild>

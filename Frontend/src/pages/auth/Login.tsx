@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,15 +23,12 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
 });
 
-// const handleGoogleLogin = async () => {
-//   window.location.href = "http://localhost:5000/auth/google?prompt=select_account&access_type=offline";
-// };
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, loading } = useAuth();
+  const { login, loginWithGoogle, loading, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
 
@@ -48,11 +45,22 @@ const Login = () => {
 
     try {
       await login(values.phone, values.password);
-      navigate("/admin");
+     
     } catch (error: any) {
       setGeneralError(error.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     }
   };
+
+  useEffect(() => {
+    if (user?.isAuthenticated) {
+      if (user.role === "admin" || user.role === "staff") {
+        navigate("/Admin");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [user, navigate]);
+
 
   const toggleShowPassword = () => setShowPassword(!showPassword);
 

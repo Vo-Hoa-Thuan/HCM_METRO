@@ -6,7 +6,8 @@ const User = require("../models/user.model");
 // Hàm tạo Access Token & Refresh Token
 const generateTokens = (user) => {
     const accessToken = jwt.sign(
-        { userId: user._id, phoneNumber: user.phoneNumber },
+        { userId: user._id, phoneNumber: user.phoneNumber,email: user.email,
+            role: user.role, },
         process.env.JWT_SECRET,
         { expiresIn: "10s" }
     );
@@ -22,46 +23,32 @@ const generateTokens = (user) => {
 
 exports.login = async (req, res) => {
   try {
-      const { phoneNumber, password } = req.body;
-      
+      const { phoneNumber, password } = req.body;     
       console.log("Dữ liệu nhận được:", { phoneNumber, password });
-
       if (!phoneNumber || !password) {
           return res.status(400).json({ message: "Vui lòng nhập số điện thoại và mật khẩu!" });
       }
-
       const user = await User.findOne({ phoneNumber });
-
       if (!user) {
           return res.status(400).json({ message: "Số điện thoại chưa đăng ký!" });
       }
-
       console.log("Dữ liệu người dùng trong DB:", user);
-
-      // Kiểm tra mật khẩu đã hash chưa
       if (!user.password) {
           return res.status(500).json({ message: "Mật khẩu không hợp lệ hoặc chưa được mã hóa!" });
       }
-
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
           return res.status(400).json({ message: "Mật khẩu sai!" });
       }
-
-      // Tạo token mới
       const { accessToken, refreshToken } = generateTokens(user);
       await User.updateOne({ _id: user._id }, { refreshToken });
 
-
-      // Lưu refreshToken vào cookie
       res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",    
           sameSite: "strict"
       });
-
-      res.json({ accessToken, refreshToken , role: user.role});
-
+      res.json({ accessToken, refreshToken , role: user.role, name : user.name});
   } catch (error) {
       console.error("Lỗi server:", error);
       res.status(500).json({ message: "Lỗi server!" });
@@ -164,37 +151,38 @@ exports.googleAuth = passport.authenticate("google", {
 // 🔹 [GET] Xử lý callback từ Google OAuth
 exports.googleCallback = (req, res, next) => {
     passport.authenticate("google", { session: false }, async (err, user) => {
-        if (err || !user) {
-            console.error("Lỗi khi xác thực Google:", err);
-            return res.redirect("/login?error=google_auth_failed");
-        }
-
-        // Kiểm tra user đã tồn tại trong DB chưa
-        let existingUser = await User.findOne({ email: user.email });
-
-        if (!existingUser) {
-            existingUser = await User.create({
-                email: user.email,
-                fullName: user.displayName,
-                googleId: user.id,
-                avatar: user.photos[0].value
-            });
-        }
-
-        // Tạo Access Token & Refresh Token
-        const { accessToken, refreshToken } = generateTokens(existingUser);
-
-        // Lưu Refresh Token vào HttpOnly Cookie
-        res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", 
-            sameSite: "Lax"
+      if (err || !user) {
+        console.error("Lỗi khi xác thực Google:", err);
+        return res.redirect("/login?error=google_auth_failed");
+      }
+  
+      let existingUser = await User.findOne({ email: user.email });
+  
+      if (!existingUser) {
+        existingUser = await User.create({
+          email: user.email,
+          fullName: user.displayName,
+          googleId: user.id,
+          avatar: user.photos[0].value,
+          role: "admin" // ✅ gán role mặc định nếu chưa có
         });
-
-        console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
-
-        // Chuyển hướng về trang Admin
-        res.redirect(`http://localhost:5713/admin?token=${accessToken}`);
+      }
+  
+      const { accessToken, refreshToken } = generateTokens(existingUser);
+  
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Lax"
+      });
+  
+      console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
+  
+      // ✅ Gửi thêm name và role về frontend
+      res.redirect(
+        `http://localhost:5713/admin?token=${accessToken}&name=${encodeURIComponent(existingUser.fullName)}&role=${existingUser.role}`
+      );
     })(req, res, next);
-};
+  };
+  
 

@@ -37,22 +37,14 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
     name: '',
     email: '',
     password: '',
-    role: 'user',
+    role: '',
     phoneNumber: '',
     address: '',
     status: 'active',
-    preferences: {
-      theme: 'system',
-      notifications: {
-        email: true,
-        app: true
-      },
-      language: 'vi'
-    }
   });
   
   const [selectedTab, setSelectedTab] = useState("all");
-  const [useMockData, setUseMockData] = useState(true);
+  const [useMockData, setUseMockData] = useState(false);
   const [selectedTime, setSelectedTime] = useState("month");
   const [userCount, setUserCount] = useState(0);
   
@@ -199,7 +191,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof typeof prev] as object || {}),
+          ...(prev[parent as keyof typeof prev] as unknown as object || {}),
           [child]: value
         }
       }));
@@ -214,7 +206,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof typeof prev] as object || {}),
+          ...(prev[parent as keyof typeof prev] as unknown as object || {}),
           [child]: value
         }
       }));
@@ -228,18 +220,10 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       name: '',
       email: '',
       password: '',
-      role: 'user',
+      role: '',
       phoneNumber: '',
       address: '',
       status: 'active',
-      preferences: {
-        theme: 'system',
-        notifications: {
-          email: true,
-          app: true
-        },
-        language: 'vi'
-      }
     });
   };
 
@@ -253,9 +237,6 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       phoneNumber: user.phoneNumber || '',
       address: user.address || '',
       status: user.status,
-      preferences: {
-        ...user.preferences
-      }
     });
     setIsEditDialogOpen(true);
   };
@@ -599,59 +580,25 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
                   className="px-6 pt-2 pb-4"
                 >
                   <div className="border-t pt-4">
-                    {user.address && (
+                    {user.address ? (
+                      <>
+                        {user.address && (
+                          <div className="mb-3">
+                            <p className="text-xs font-medium text-muted-foreground">Địa chỉ:</p>
+                            <div className="flex items-start mt-1">
+                              <MapPin className="h-3.5 w-3.5 mr-2 mt-0.5 text-muted-foreground" />
+                              <p className="text-sm">{user.address}</p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
                       <div className="mb-3">
-                        <p className="text-xs font-medium text-muted-foreground">Địa chỉ:</p>
-                        <div className="flex items-start mt-1">
-                          <MapPin className="h-3.5 w-3.5 mr-2 mt-0.5 text-muted-foreground" />
-                          <p className="text-sm">{user.address}</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">Không có thêm thông tin</p>
                       </div>
                     )}
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Ngôn ngữ:</span>
-                        <Badge variant="outline">
-                          {user.preferences?.language === 'vi' ? 'Tiếng Việt' : 'English'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Giao diện:</span>
-                        <Badge variant="outline">
-                          {user.preferences?.theme === 'light' ? 'Sáng' : 
-                           user.preferences?.theme === 'dark' ? 'Tối' : 'Hệ thống'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Thông báo email:</span>
-                        <Badge variant={user.preferences?.notifications?.email ? 'default' : 'secondary'}>
-                          {user.preferences?.notifications?.email ? 'Bật' : 'Tắt'}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Thông báo ứng dụng:</span>
-                        <Badge variant={user.preferences?.notifications?.app ? 'default' : 'secondary'}>
-                          {user.preferences?.notifications?.app ? 'Bật' : 'Tắt'}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-end mt-4">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="flex items-center gap-1"
-                        onClick={() => handleEditClick(user)}
-                      >
-                        <Settings className="h-3.5 w-3.5" />
-                        <span>Cài đặt</span>
-                      </Button>
-                    </div>
                   </div>
+
                 </motion.div>
               )}
               

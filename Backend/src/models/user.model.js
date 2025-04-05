@@ -9,16 +9,8 @@ const UserSchema = new mongoose.Schema(
     password: String, 
     role: { type: String, enum: ["admin", "user", "staff"], default: "user" },
     refreshToken: { type: String, default: null }, 
-    address: { type: String, default: "" },  
+    address: { type: String },  
     status: { type: String, enum: ["active", "inactive", "suspended"], default: "active" }, 
-    preferences: { 
-      theme: { type: String, enum: ["light", "dark", "system"], default: "system" }, 
-      notifications: { 
-        email: { type: Boolean, default: true }, 
-        app: { type: Boolean, default: true } 
-      },
-      language: { type: String, default: "vi" }
-    }
   },
   { timestamps: true }
 );

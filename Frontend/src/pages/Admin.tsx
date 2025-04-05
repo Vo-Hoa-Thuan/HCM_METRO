@@ -185,7 +185,7 @@ const Admin = () => {
                       </div>
                       <div className="flex flex-col items-start">
                         <span className="text-sm font-medium">{user?.name}</span>
-                        <span className="text-xs text-muted-foreground">Admin</span>
+                        <span className="text-xs text-muted-foreground">{user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}</span>
                       </div>
                       <ChevronDown className="h-4 w-4" />
                     </Button>

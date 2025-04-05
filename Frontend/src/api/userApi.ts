@@ -11,19 +11,11 @@ export interface User {
   _id: string;
   email: string;
   name: string;
-  role: 'User' | 'Moderator' | 'Admin';
+  role: 'user' | 'staff' | 'admin';
   phoneNumber?: string;
   address?: string;
   avatar?: string;
   status: 'active' | 'inactive' | 'suspended';
-  preferences: {
-    theme: 'light' | 'dark' | 'system';
-    notifications: {
-      email: boolean;
-      app: boolean;
-    };
-    language: string;
-  };
   lastActive?: string;
   createdAt: string;
 }
@@ -38,18 +30,12 @@ api.interceptors.response.use(
 
 export const getAllUsers = async () => {
   try {
-    console.log("🟢 Đang gọi API:", `${API_URL}/users`);
     const response = await axios.get(`${API_URL}/users`);
-    console.log("✅ API trả về:", response.data);
-
-    return response.data || []; // Trả về mảng rỗng nếu không có dữ liệu
+    return response.data || [];
   } catch (error) {
-    console.error("❌ Lỗi gọi API:", error.message);
-    console.error("📌 Chi tiết lỗi:", error.response ? error.response.data : error);
-    return []; // Trả về mảng rỗng nếu có lỗi
+    return [];
   }
 };
-
 
 
 export const getUserById = async (id: string) => {
@@ -64,7 +50,7 @@ export const getUserById = async (id: string) => {
 
 export const createUser = async (userData: Partial<User>) => {
   try {
-    const response = await api.post('/users', userData);
+    const response = await api.post('/users/register', userData);
     return response.data;
   } catch (error) {
     console.error('Failed to create user:', error);

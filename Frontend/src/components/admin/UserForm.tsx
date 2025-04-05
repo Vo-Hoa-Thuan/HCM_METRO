@@ -86,7 +86,7 @@ const UserForm: React.FC<UserFormProps> = ({
           <div className="space-y-2">
             <Label htmlFor="role">Vai trò</Label>
             <Select
-              value={formData.role || 'User'}
+              value={formData.role}
               onValueChange={(value) => handleSelectChange('role', value)}
             >
               <SelectTrigger id="role">
@@ -131,21 +131,7 @@ const UserForm: React.FC<UserFormProps> = ({
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="preferences.language">Ngôn ngữ</Label>
-          <Select
-            value={formData.preferences?.language || 'vi'}
-            onValueChange={(value) => handleSelectChange('preferences.language', value)}
-          >
-            <SelectTrigger id="preferences.language">
-              <SelectValue placeholder="Chọn ngôn ngữ" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="vi">Tiếng Việt</SelectItem>
-              <SelectItem value="en">Tiếng Anh</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        
       </div>
       <DialogFooter>
         <Button 
