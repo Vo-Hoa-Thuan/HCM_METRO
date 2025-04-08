@@ -164,7 +164,7 @@ exports.googleCallback = (req, res, next) => {
           fullName: user.displayName,
           googleId: user.id,
           avatar: user.photos[0].value,
-          role: "admin" // ✅ gán role mặc định nếu chưa có
+          role: "adminN" // ✅ gán role mặc định nếu chưa có
         });
       }
   

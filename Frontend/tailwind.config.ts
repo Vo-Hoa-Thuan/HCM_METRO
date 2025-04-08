@@ -31,6 +31,7 @@ export default {
 				active: '#33CC66',
 				inactive: '#898989',
 				block: '#CC0000',
+				success: '#3498DB',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'

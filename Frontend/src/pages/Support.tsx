@@ -74,7 +74,7 @@ const faqs: FAQItem[] = [
   {
     id: "1",
     question: "Làm thế nào để đặt mua vé Metro?",
-    answer: "Bạn có thể mua vé Metro thông qua ứng dụng Metro Pathfinder, tại các quầy vé ở ga hoặc qua website chính thức. Chúng tôi cung cấp nhiều loại vé khác nhau: vé một chiều, vé khứ hồi, vé ngày và vé tháng. Thanh toán có thể thực hiện bằng tiền mặt, thẻ ngân hàng hoặc ví điện tử như MoMo, ZaloPay.",
+    answer: "Bạn có thể mua vé Metro thông qua ứng dụng Metro hcm, tại các quầy vé ở ga hoặc qua website chính thức. Chúng tôi cung cấp nhiều loại vé khác nhau: vé một chiều, vé khứ hồi, vé ngày và vé tháng. Thanh toán có thể thực hiện bằng tiền mặt, thẻ ngân hàng hoặc ví điện tử như MoMo, ZaloPay.",
     category: "Vé"
   },
   {
@@ -86,31 +86,31 @@ const faqs: FAQItem[] = [
   {
     id: "3",
     question: "Chính sách hoàn trả vé Metro",
-    answer: "Vé một chiều không được hoàn trả. Vé tháng có thể hoàn trả trong vòng 7 ngày kể từ ngày mua với phí hủy 10%. Để hoàn trả, hãy mang vé và chứng minh nhân dân đến quầy dịch vụ khách hàng tại các ga chính hoặc gửi yêu cầu qua ứng dụng Metro Pathfinder.",
+    answer: "Vé một chiều không được hoàn trả. Vé tháng có thể hoàn trả trong vòng 7 ngày kể từ ngày mua với phí hủy 10%. Để hoàn trả, hãy mang vé và chứng minh nhân dân đến quầy dịch vụ khách hàng tại các ga chính hoặc gửi yêu cầu qua ứng dụng Metro hcm.",
     category: "Vé"
   },
   {
     id: "4",
     question: "Làm thế nào để tìm đường đến ga Metro gần nhất?",
-    answer: "Bạn có thể sử dụng tính năng 'Tìm ga gần nhất' trong ứng dụng Metro Pathfinder. Ứng dụng sẽ sử dụng vị trí hiện tại của bạn để chỉ đường đến ga Metro gần nhất. Ngoài ra, bạn cũng có thể tham khảo bản đồ Metro trong phần 'Bản đồ' của ứng dụng hoặc website.",
+    answer: "Bạn có thể sử dụng tính năng 'Tìm ga gần nhất' trong ứng dụng Metro hcm. Ứng dụng sẽ sử dụng vị trí hiện tại của bạn để chỉ đường đến ga Metro gần nhất. Ngoài ra, bạn cũng có thể tham khảo bản đồ Metro trong phần 'Bản đồ' của ứng dụng hoặc website.",
     category: "Điều hướng"
   },
   {
     id: "5",
     question: "Thủ tục đổi vé khi bị mất",
-    answer: "Nếu bạn đã đăng ký tài khoản và mua vé qua ứng dụng Metro Pathfinder, bạn có thể báo mất và yêu cầu cấp lại vé trong ứng dụng. Nếu mua vé giấy, bạn cần đến quầy dịch vụ khách hàng cùng với giấy tờ tùy thân và hóa đơn mua vé (nếu có) để được hỗ trợ. Lưu ý rằng có thể có phí cấp lại vé.",
+    answer: "Nếu bạn đã đăng ký tài khoản và mua vé qua ứng dụng Metro hcm, bạn có thể báo mất và yêu cầu cấp lại vé trong ứng dụng. Nếu mua vé giấy, bạn cần đến quầy dịch vụ khách hàng cùng với giấy tờ tùy thân và hóa đơn mua vé (nếu có) để được hỗ trợ. Lưu ý rằng có thể có phí cấp lại vé.",
     category: "Vé"
   },
   {
     id: "6",
     question: "Có dịch vụ wifi miễn phí trên tàu Metro không?",
-    answer: "Tất cả các đoàn tàu Metro và nhà ga đều có wifi miễn phí. Để kết nối, hãy chọn mạng 'Metro-Free-WiFi' và đăng nhập bằng số điện thoại hoặc tài khoản Metro Pathfinder. Tốc độ wifi đủ để duyệt web, kiểm tra email và nhắn tin, nhưng có thể không phù hợp cho việc xem video chất lượng cao.",
+    answer: "Tất cả các đoàn tàu Metro và nhà ga đều có wifi miễn phí. Để kết nối, hãy chọn mạng 'Metro-Free-WiFi' và đăng nhập bằng số điện thoại hoặc tài khoản Metro hcm. Tốc độ wifi đủ để duyệt web, kiểm tra email và nhắn tin, nhưng có thể không phù hợp cho việc xem video chất lượng cao.",
     category: "Tiện ích"
   },
   {
     id: "7",
     question: "Làm thế nào để báo cáo đồ thất lạc?",
-    answer: "Nếu bạn đánh mất đồ trên tàu Metro hoặc tại nhà ga, hãy báo cáo ngay cho nhân viên nhà ga hoặc gọi đến tổng đài 1900xxxx. Bạn cũng có thể báo cáo qua ứng dụng Metro Pathfinder trong phần 'Đồ thất lạc'. Cung cấp mô tả chi tiết về vật phẩm, thời gian và địa điểm bạn nghĩ mình đã đánh mất nó.",
+    answer: "Nếu bạn đánh mất đồ trên tàu Metro hoặc tại nhà ga, hãy báo cáo ngay cho nhân viên nhà ga hoặc gọi đến tổng đài 1900xxxx. Bạn cũng có thể báo cáo qua ứng dụng Metro hcm trong phần 'Đồ thất lạc'. Cung cấp mô tả chi tiết về vật phẩm, thời gian và địa điểm bạn nghĩ mình đã đánh mất nó.",
     category: "Dịch vụ"
   },
   {
@@ -122,7 +122,7 @@ const faqs: FAQItem[] = [
   {
     id: "9",
     question: "Làm thế nào để đăng ký thẻ Metro thường xuyên?",
-    answer: "Thẻ Metro thường xuyên (Regular Commuter Card) là lựa chọn tiết kiệm cho người dùng thường xuyên. Để đăng ký, hãy mang theo CMND/CCCD đến quầy dịch vụ khách hàng tại các ga chính hoặc đăng ký online qua ứng dụng Metro Pathfinder. Thẻ có phí phát hành 50,000 VND và có thể nạp tiền với số tiền tối thiểu là 100,000 VND.",
+    answer: "Thẻ Metro thường xuyên (Regular Commuter Card) là lựa chọn tiết kiệm cho người dùng thường xuyên. Để đăng ký, hãy mang theo CMND/CCCD đến quầy dịch vụ khách hàng tại các ga chính hoặc đăng ký online qua ứng dụng Metro hcm. Thẻ có phí phát hành 50,000 VND và có thể nạp tiền với số tiền tối thiểu là 100,000 VND.",
     category: "Vé"
   },
   {
@@ -164,15 +164,15 @@ const tickets: SupportTicket[] = [
 
 // Bot responses based on keywords
 const botResponses: { [key: string]: string } = {
-  "vé": "Bạn có thể mua vé Metro tại quầy vé ở các nhà ga, qua ứng dụng Metro Pathfinder hoặc website chính thức. Chúng tôi có nhiều loại vé: vé một chiều (từ 15,000đ), vé khứ hồi (25,000đ), vé ngày (50,000đ) và vé tháng (750,000đ).",
+  "vé": "Bạn có thể mua vé Metro tại quầy vé ở các nhà ga, qua ứng dụng Metro hcm hoặc website chính thức. Chúng tôi có nhiều loại vé: vé một chiều (từ 15,000đ), vé khứ hồi (25,000đ), vé ngày (50,000đ) và vé tháng (750,000đ).",
   "tuyến": "Hiện tại TP HCM có 6 tuyến Metro: Tuyến 1 (Đỏ): Bến Thành - Suối Tiên, Tuyến 2 (Xanh): Thủ Thiêm - Củ Chi, Tuyến 3 (Xanh lá): Bến Thành - Bình Tân, Tuyến 4 (Tím): Lăng Cha Cả - Cảng Hiệp Phước, Tuyến 5 (Vàng): BX Cần Giuộc - Cầu Sài Gòn, Tuyến 6 (Nâu): Ba Quẹo - Vòng xoay Phú Lâm.",
   "giờ": "Các tuyến Metro đều hoạt động từ 5:30 - 22:30 trong tuần và 6:00 - 22:00 vào cuối tuần. Tần suất chạy tàu vào giờ cao điểm là 5-8 phút tùy tuyến và 10-15 phút vào giờ thường.",
   "hoàn": "Chính sách hoàn vé: Vé một chiều không được hoàn tiền. Vé tháng có thể hoàn trả trong vòng 7 ngày kể từ ngày mua với phí hủy 10%. Mang vé và CMND đến quầy dịch vụ tại các ga chính hoặc yêu cầu qua ứng dụng.",
   "mất": "Nếu mất vé điện tử, bạn có thể báo mất và yêu cầu cấp lại trong ứng dụng. Với vé giấy, hãy đến quầy dịch vụ với CMND và hóa đơn (nếu có) để được hỗ trợ. Có thể có phí cấp lại vé.",
-  "wifi": "Tất cả tàu Metro và nhà ga đều có wifi miễn phí. Kết nối với mạng 'Metro-Free-WiFi' và đăng nhập bằng số điện thoại hoặc tài khoản Metro Pathfinder.",
+  "wifi": "Tất cả tàu Metro và nhà ga đều có wifi miễn phí. Kết nối với mạng 'Metro-Free-WiFi' và đăng nhập bằng số điện thoại hoặc tài khoản Metro hcm.",
   "thất lạc": "Nếu bạn đánh mất đồ, hãy báo ngay cho nhân viên ga, gọi 1900xxxx hoặc báo qua ứng dụng (phần 'Đồ thất lạc'). Cung cấp mô tả chi tiết, thời gian và địa điểm bạn nghĩ đã mất đồ.",
   "khuyết tật": "Các nhà ga có thang máy, đường dốc, nhà vệ sinh đặc biệt và khu vực chờ ưu tiên. Tàu có khu vực riêng cho xe lăn và hệ thống thông báo bằng âm thanh/hình ảnh. Nhân viên sẵn sàng hỗ trợ khi cần.",
-  "thẻ": "Thẻ Metro thường xuyên có phí phát hành 50,000đ và nạp tối thiểu 100,000đ. Đăng ký tại quầy dịch vụ (mang CMND) hoặc qua ứng dụng Metro Pathfinder.",
+  "thẻ": "Thẻ Metro thường xuyên có phí phát hành 50,000đ và nạp tối thiểu 100,000đ. Đăng ký tại quầy dịch vụ (mang CMND) hoặc qua ứng dụng Metro hcm.",
   "hành lý": "Hành lý cá nhân không quá 60x40x30cm và 20kg. Không mang vật dễ cháy nổ, chất độc, vũ khí hoặc động vật (trừ động vật hỗ trợ). Xe đạp gấp được phép ngoài giờ cao điểm nếu có túi chuyên dụng.",
   "giá": "Giá vé Metro phụ thuộc vào loại vé và quãng đường: Vé một chiều từ 15,000đ-30,000đ, vé khứ hồi 25,000đ-50,000đ, vé ngày 50,000đ, vé tuần 200,000đ, vé tháng từ 750,000đ.",
   "trễ": "Nếu tàu bị trễ hơn 15 phút, bạn có thể yêu cầu hoàn tiền cho vé một chiều hoặc được cộng thêm 1 chuyến vào vé tuần/tháng. Báo cáo sự cố tại quầy dịch vụ hoặc qua ứng dụng.",
@@ -181,7 +181,7 @@ const botResponses: { [key: string]: string } = {
   "chó": "Động vật cưng không được phép lên tàu, trừ động vật hỗ trợ cho người khuyết tật (có giấy chứng nhận). Động vật hỗ trợ phải đeo rọ mõm và dây xích.",
   "xe đạp": "Xe đạp gấp được phép mang lên tàu ngoài giờ cao điểm (9:00-16:00 và sau 19:00) nếu được bọc trong túi chuyên dụng. Xe đạp thường không được phép.",
   "khẩn cấp": "Trong trường hợp khẩn cấp, hãy giữ bình tĩnh và làm theo hướng dẫn của nhân viên. Mỗi toa tàu và nhà ga đều có nút báo động khẩn cấp, bình cứu hỏa và thiết bị sơ cứu.",
-  "bản đồ": "Bạn có thể xem bản đồ chi tiết hệ thống Metro trong phần 'Bản đồ' của ứng dụng Metro Pathfinder hoặc website chính thức. Bản đồ cũng được hiển thị tại tất cả các nhà ga.",
+  "bản đồ": "Bạn có thể xem bản đồ chi tiết hệ thống Metro trong phần 'Bản đồ' của ứng dụng Metro hcm hoặc website chính thức. Bản đồ cũng được hiển thị tại tất cả các nhà ga.",
   "default": "Cảm ơn bạn đã liên hệ với chúng tôi. Vui lòng cho biết thêm chi tiết về câu hỏi của bạn để chúng tôi có thể hỗ trợ tốt hơn."
 };
 
@@ -194,7 +194,7 @@ const Support = () => {
   const [messages, setMessages] = useState<MessageType[]>([
     {
       id: generateId(),
-      text: "Xin chào! Tôi là trợ lý ảo Metro Pathfinder. Tôi có thể giúp gì cho bạn hôm nay?",
+      text: "Xin chào! Tôi là trợ lý ảo Metro hcm. Tôi có thể giúp gì cho bạn hôm nay?",
       sender: 'bot',
       timestamp: new Date(),
       status: 'sent'

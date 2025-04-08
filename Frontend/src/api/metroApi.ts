@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { mockTickets, mockLines, mockStations } from '@/utils/mockData';
 
 const API_URL = "http://localhost:5000"; // Kiểm tra lại giá trị này
@@ -12,6 +12,15 @@ export interface RouteStep {
   line?: string;
   duration: number;
   distance: number;
+}
+
+// Define feedback interface
+export interface Feedback {
+  userId?: string;
+  rating: number;
+  comment?: string;
+  source: string;
+  date: string;
 }
 
 export interface RouteOption {
@@ -372,5 +381,27 @@ export const exportUsers = async () => {
   } catch (error) {
     console.error('Failed to export users:', error);
     throw error;
+  }
+};
+
+// Feedback
+export const submitFeedback = async (feedbackData: Omit<Feedback, 'date'>) => {
+  return handleApiCall(
+    api.post('/feedback', {
+      ...feedbackData,
+      date: new Date().toISOString()
+    }),
+    { success: true, message: 'Feedback submitted successfully' }
+  );
+};
+// Tạo một function tổng quát để xử lý API calls
+const handleApiCall = async (apiCall: Promise<any>, mockData: any) => {
+  try {
+    const response = await apiCall;
+    return response.data;
+  } catch (error) {
+    console.error('API call failed:', error);
+    // Trả về mock data nếu API call thất bại
+    return mockData;
   }
 };

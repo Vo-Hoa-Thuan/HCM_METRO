@@ -12,9 +12,12 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Progress from './pages/Progress';
+import News from './pages/News';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import FloatingFeedbackButton from './components/feedback/FloatingFeedbackButton';
 import "./App.css";
 
 function App() {
@@ -24,7 +27,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AuthProvider> {/* AuthProvider bên trong Router */}
+        <AuthProvider>
+          <FloatingFeedbackButton />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/map" element={<Map />} />
@@ -35,6 +39,8 @@ function App() {
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/devices" element={<Devices />} />
             <Route path="/realtime" element={<RealTime />} />
+            <Route path="/progress" element={<Progress />} />
+            <Route path="/news" element={<News />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
