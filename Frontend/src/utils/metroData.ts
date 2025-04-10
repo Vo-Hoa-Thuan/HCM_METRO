@@ -628,7 +628,6 @@ export const calculateDistance = (
   return R * c;
 };
 
-// Function to format price in VND
 export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('vi-VN', { 
     style: 'currency', 

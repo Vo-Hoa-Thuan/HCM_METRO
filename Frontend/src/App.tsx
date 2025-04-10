@@ -12,6 +12,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Payment from "./pages/Payment";
 import Progress from './pages/Progress';
 import News from './pages/News';
 import { AuthProvider } from "./contexts/AuthContext";
@@ -45,6 +46,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/404" element={<NotFound />} />
+            <Route path="/payment" element={<Payment />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
         </AuthProvider>
