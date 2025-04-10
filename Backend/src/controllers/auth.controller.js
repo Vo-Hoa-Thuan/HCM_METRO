@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
+const UserSession = require("../models/UserSession");
+const parser = require("ua-parser-js");
 
 // Hàm tạo Access Token & Refresh Token
 const generateTokens = (user) => {
@@ -22,38 +24,71 @@ const generateTokens = (user) => {
 };
 
 exports.login = async (req, res) => {
-  try {
+    try {
       const { phoneNumber, password } = req.body;     
       console.log("Dữ liệu nhận được:", { phoneNumber, password });
+  
       if (!phoneNumber || !password) {
-          return res.status(400).json({ message: "Vui lòng nhập số điện thoại và mật khẩu!" });
+        return res.status(400).json({ message: "Vui lòng nhập số điện thoại và mật khẩu!" });
       }
+  
       const user = await User.findOne({ phoneNumber });
       if (!user) {
-          return res.status(400).json({ message: "Số điện thoại chưa đăng ký!" });
+        return res.status(400).json({ message: "Số điện thoại chưa đăng ký!" });
       }
+  
       console.log("Dữ liệu người dùng trong DB:", user);
+  
       if (!user.password) {
-          return res.status(500).json({ message: "Mật khẩu không hợp lệ hoặc chưa được mã hóa!" });
+        return res.status(500).json({ message: "Mật khẩu không hợp lệ hoặc chưa được mã hóa!" });
       }
+  
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-          return res.status(400).json({ message: "Mật khẩu sai!" });
+        return res.status(400).json({ message: "Mật khẩu sai!" });
       }
+  
       const { accessToken, refreshToken } = generateTokens(user);
+  
       await User.updateOne({ _id: user._id }, { refreshToken });
-
-      res.cookie("refreshToken", refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",    
-          sameSite: "strict"
+  
+      // 🔥 Phân tích thiết bị và IP
+      const ua = parser(req.headers["user-agent"]);
+      const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  
+      // 🔥 Lưu UserSession
+      await UserSession.create({
+        userId: user._id,
+        refreshToken,
+        userAgent: req.headers["user-agent"],
+        ip,
+        os: ua.os.name + " " + ua.os.version,
+        browser: ua.browser.name + " " + ua.browser.version,
+        device: ua.device.model || "Unknown",
+        lastActiveAt: new Date(),
       });
-      res.json({ accessToken, refreshToken , role: user.role, name : user.name});
-  } catch (error) {
+  
+      // 🔥 Đặt refreshToken vào cookie
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",    
+        sameSite: "strict",
+      });
+  
+      // 🔥 Trả về response
+      res.json({ 
+        accessToken, 
+        refreshToken, 
+        role: user.role, 
+        name: user.name, 
+        id: user._id.toString()
+      });
+  
+    } catch (error) {
       console.error("Lỗi server:", error);
       res.status(500).json({ message: "Lỗi server!" });
-  }
-};
+    }
+  };
 
 
 exports.refreshToken = async (req, res) => {
@@ -164,7 +199,8 @@ exports.googleCallback = (req, res, next) => {
           fullName: user.displayName,
           googleId: user.id,
           avatar: user.photos[0].value,
-          role: "adminN" // ✅ gán role mặc định nếu chưa có
+          role: "admin",
+          signupType: "google",
         });
       }
   
@@ -184,5 +220,60 @@ exports.googleCallback = (req, res, next) => {
       );
     })(req, res, next);
   };
-  
 
+  exports.getUserSessions = async (req, res) => {
+    try {
+      const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
+  
+      if (!token) {
+        return res.status(401).json({
+          code: 401,
+          data: null,
+          message: "Không có token!"
+        });
+      }
+  
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.id);
+  
+      if (!user) {
+        return res.status(401).json({
+          code: 401,
+          data: null,
+          message: "Không xác định được người dùng."
+        });
+      }
+  
+      const userId = user._id;
+      const currentToken = req.cookies?.refreshToken;
+  
+      const sessions = await UserSession.find({ userId }).sort({ lastActiveAt: -1 });
+  
+      const result = sessions.map((s) => ({
+        sessionId: s._id,
+        ip: s.ip,
+        device: s.device,
+        os: s.os,
+        browser: s.browser,
+        userAgent: s.userAgent,
+        lastActiveAt: s.lastActiveAt,
+        createdAt: s.createdAt,
+        isCurrentSession: s.refreshToken === currentToken,
+      }));
+  
+      res.status(200).json({
+        code: 200,
+        data: result,
+        message: "Lấy phiên thành công"
+      });
+    } catch (error) {
+      console.error("Lỗi khi lấy phiên:", error);
+      res.status(500).json({
+        code: 500,
+        data: null,
+        message: "Lỗi server khi lấy phiên đăng nhập!"
+      });
+    }
+  };
+  
+  

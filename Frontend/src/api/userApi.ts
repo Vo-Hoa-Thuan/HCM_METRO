@@ -50,7 +50,7 @@ export const getUserById = async (id: string) => {
 
 export const createUser = async (userData: Partial<User>) => {
   try {
-    const response = await api.post(`/users/register`, userData);
+    const response = await api.post(`/users`, userData);
     return response.data;
   } catch (error) {
     console.error('Failed to create user:', error);
@@ -97,3 +97,4 @@ export const exportUsers = async () => {
     throw error;
   }
 };
+

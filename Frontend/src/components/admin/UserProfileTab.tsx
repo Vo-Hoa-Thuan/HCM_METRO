@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -15,8 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getUserById} from "@/api/userApi";
 import { Switch } from "@/components/ui/switch";
-import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "@/components/ui/motion";
 import { 
   User, 
@@ -40,6 +40,7 @@ import {
   Clock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const UserProfileTab = () => {
   const { user } = useAuth();
@@ -52,14 +53,48 @@ const UserProfileTab = () => {
   const [appNotifications, setAppNotifications] = useState(true);
   
   const [profileData, setProfileData] = useState({
-    name: user?.name || "Admin User",
-    email: user?.email || "admin@example.com",
-    phone: "0901234567",
-    address: "123 Đường Nguyễn Huệ, Quận 1, TP.HCM",
-    avatar: user?.avatar || "https://github.com/shadcn.png",
-    role: user?.role || "Admin",
-    joinDate: "01/01/2023"
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    avatar: "",
+    role: "",
+    joinDate: "",
   });
+  console.log("User context:", user); 
+
+useEffect(() => {
+  if (!user?.id) return;
+
+  const fetchUser = async () => {
+    try {
+      const data = await getUserById(user.id);
+      console.log("✅ Dữ liệu người dùng từ API:", data);
+
+      setProfileData({
+        name: data.name,
+        email: data.email,
+        phone: data.phoneNumber,
+        address: data.address,
+        avatar: data.avatar || "https://github.com/shadcn.png",
+        role: data.role,
+        joinDate: data.createdAt
+          ? new Date(data.createdAt).toLocaleString("vi-VN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "Không rõ",
+      });
+    } catch (error) {
+      console.error("❌ Lỗi khi fetch user:", error);
+    }
+  };
+
+  fetchUser();
+}, [user?.id]);
+
+
+  
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

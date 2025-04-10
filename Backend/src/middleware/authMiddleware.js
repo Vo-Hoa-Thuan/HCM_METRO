@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.model'); // Đảm bảo đường dẫn đúng
+const User = require('../models/user.model');
+// const User = require('../models/UserSession');
 
 const authorizeAdmin = async (req, res, next) => {
   const token = req.cookies.token || req.headers.authorization?.split(" ")[1]; // Lấy token từ cookie hoặc headers
@@ -23,4 +24,26 @@ const authorizeAdmin = async (req, res, next) => {
   }
 };
 
-module.exports = authorizeAdmin;
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.cookies?.accessToken; // hoặc từ header: req.headers.authorization
+    if (!token) {
+      return res.status(401).json({ message: "Chưa đăng nhập" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id); // hoặc decoded._id tùy bạn ký token như nào
+
+    if (!user) {
+      return res.status(401).json({ message: "Không tìm thấy người dùng" });
+    }
+
+    req.user = user; // GÁN user vào request
+    next();
+  } catch (error) {
+    console.error("Lỗi xác thực:", error);
+    res.status(401).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
+  }
+};
+
+module.exports = authorizeAdmin, authMiddleware;

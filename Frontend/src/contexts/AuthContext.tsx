@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem("accessToken");
       const storedName = localStorage.getItem("name");
       const storedRole = localStorage.getItem("role");
+      const storedId = localStorage.getItem("id");
   
       if (storedToken && storedName && storedRole) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }) => {
           token: storedToken,
           name: storedName,
           role: storedRole,
+          id: storedId,
           isAuthenticated: true,
         });
       } else {
@@ -60,6 +62,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("name", data.name);
         localStorage.setItem("role", data.role);
+        localStorage.setItem("userId", data.id);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
         // ✅ Cập nhật user
       setUser({
@@ -67,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         name: data.name,
         role: data.role,
+        id: data.id,
       });}
     } catch (error) {
       console.error("Lỗi refresh token:", error);
@@ -91,10 +95,12 @@ export const AuthProvider = ({ children }) => {
         console.log("🔥 Access Token mới:", data.accessToken);
         console.log("🔥 Refresh Token mới:", data.refreshToken);
         console.log("🔥 Tên:", data.name);
+        console.log("🔥 Id:", data.id);
 
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("role", data.role);
         localStorage.setItem("name", data.name);
+        localStorage.setItem("userId", data.id);
         if (data.refreshToken) {
           localStorage.setItem("refreshToken", data.refreshToken);
         }
@@ -104,7 +110,7 @@ export const AuthProvider = ({ children }) => {
           axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         }
 
-        setUser({ token: data.accessToken, isAuthenticated: true , name: data.name, role: data.role});
+        setUser({ token: data.accessToken, isAuthenticated: true , name: data.name, role: data.role, id: data.id});
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error.response?.data?.message || error.message);

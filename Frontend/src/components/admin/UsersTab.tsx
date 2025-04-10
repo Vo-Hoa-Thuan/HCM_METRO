@@ -29,6 +29,8 @@ const timeOptions = [
 
 type Role = "admin" | "staff" | "user"
 type Status = "active" | "inactive" | "suspended";
+type SignupType = "phone" | "google";
+
 
 const UsersTab = ({ searchTerm }: UsersTabProps) => {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
@@ -36,6 +38,8 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formKey, setFormKey] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -44,6 +48,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
     phoneNumber: '',
     address: '',
     status: 'active' as Status,
+    signupType: 'phone' as SignupType,
   });
   
   const [selectedTab, setSelectedTab] = useState("all");
@@ -189,7 +194,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof typeof prev] as unknown as object || {}),
+          ...(typeof prev[parent] === 'object' && prev[parent] !== null ? prev[parent] : {}),
           [child]: value
         }
       }));
@@ -197,6 +202,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
+  
 
   const resetForm = () => {
     setFormData({
@@ -207,6 +213,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       phoneNumber: '',
       address: '',
       status: 'active',
+      signupType: 'phone',
     });
   };
 
@@ -223,14 +230,16 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
         phoneNumber: userData.phoneNumber || '',
         address: userData.address || '',
         status: userData.status,
+        signupType: userData.signupType || 'phone',
       });
       console.log('User object:', user);
+      console.log('User userdata:', userData);
+      setFormKey(prev => prev + 1);
       setIsEditDialogOpen(true);
     } catch (error) {
       console.error('Lỗi khi lấy user:', error);
     }
   };
-  
   
 
   const handleDeleteClick = (user: any) => {
@@ -253,16 +262,17 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       setIsCreateDialogOpen(false);
       resetForm();
       fetchUsers(); 
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.error || "Không thể tạo người dùng";
+  
       toast({
         title: "Lỗi",
-        description: `Không thể tạo người dùng: ${
-          error instanceof Error ? error.message : "Lỗi không xác định"
-        }`,
+        description: errorMsg,
         variant: "destructive",
       });
     }
   };
+  
   
 
   const handleEditSubmit = async (e: React.FormEvent) => {
@@ -379,6 +389,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
     );
   }
 
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
@@ -391,33 +402,42 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
             Xuất Excel
           </Button>
           
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Thêm người dùng
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
-              <DialogHeader>
-                <DialogTitle>Thêm người dùng mới</DialogTitle>
-                <DialogDescription>
-                  Điền các thông tin dưới đây để tạo người dùng mới.
-                </DialogDescription>
-              </DialogHeader>
-              <UserForm
-                formData={formData}
-                handleInputChange={handleInputChange}
-                handleSelectChange={handleSelectChange}
-                handleSubmit={handleCreateSubmit}
-                isSubmitting={createUserMutation.isPending}
-                onCancel={() => setIsCreateDialogOpen(false)}
-                submitLabel="Tạo người dùng"
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+     <div className="flex justify-end mb-4">
+      <Button
+        className="flex items-center gap-2"
+        onClick={() => {
+          resetForm();
+          setFormKey(prev => prev + 1);
+          setIsCreateDialogOpen(true);
+        }}
+      >
+        <Plus className="h-4 w-4" />
+        Thêm người dùng
+      </Button>
+    </div>
+
+    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle>Thêm người dùng mới</DialogTitle>
+          <DialogDescription>
+            Điền các thông tin dưới đây để tạo người dùng mới.
+          </DialogDescription>
+        </DialogHeader>
+        <UserForm
+          key={formKey}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleSelectChange={handleSelectChange}
+          handleSubmit={handleCreateSubmit}
+          isSubmitting={createUserMutation.isPending}
+          onCancel={() => setIsCreateDialogOpen(false)}
+          submitLabel="Tạo người dùng"
+        />
+      </DialogContent>
+    </Dialog>
+    </div>
+  </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
@@ -667,12 +687,14 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
           <p className="text-muted-foreground mt-1 mb-4">
             Không có người dùng nào khớp với tìm kiếm của bạn.
           </p>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button
+        onClick={() => { resetForm(); setIsEditing(false); setFormKey(prev => prev + 1); setIsCreateDialogOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Thêm người dùng mới
           </Button>
         </div>
       )}
+
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
@@ -683,11 +705,13 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
             </DialogDescription>
           </DialogHeader>
           <UserForm
+            key={formKey}
             formData={formData}
             handleInputChange={handleInputChange}
             handleSelectChange={handleSelectChange}
             handleSubmit={handleEditSubmit}
             isSubmitting={false}
+            
             onCancel={() => setIsEditDialogOpen(false)}
             submitLabel="Cập nhật"
             isEditing={true}

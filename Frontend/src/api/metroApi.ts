@@ -1,10 +1,9 @@
-import axios, { AxiosResponse } from 'axios';
-import { mockTickets, mockLines, mockStations } from '@/utils/mockData';
+import axios from 'axios';
 
-const API_URL = "http://localhost:5000"; // Kiểm tra lại giá trị này
+// Định nghĩa URL API từ biến môi trường hoặc mặc định
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/';
 
-
-// Define types for route planning
+// Định nghĩa các kiểu dữ liệu cho route planning
 export interface RouteStep {
   type: 'metro' | 'walk';
   from: string;
@@ -12,15 +11,6 @@ export interface RouteStep {
   line?: string;
   duration: number;
   distance: number;
-}
-
-// Define feedback interface
-export interface Feedback {
-  userId?: string;
-  rating: number;
-  comment?: string;
-  source: string;
-  date: string;
 }
 
 export interface RouteOption {
@@ -33,7 +23,7 @@ export interface RouteOption {
   arrivalTime: string;
 }
 
-// Define types for API entities
+// Định nghĩa các kiểu dữ liệu cho API entities
 export interface MetroLine {
   id: string;
   name: string;
@@ -115,285 +105,80 @@ export interface User {
   createdAt: string;
 }
 
-// Set up axios instance with error handling
+// Define feedback interface
+export interface Feedback {
+  _id?: string;
+  userId?: string;
+  rating: number;
+  comment?: string;
+  source: string;
+  date: string;
+  status?: 'new' | 'reviewed' | 'resolved' | 'archived';
+  response?: string;
+  userEmail?: string;
+  userName?: string;
+}
+
+// Define feedback stats interface
+export interface FeedbackStats {
+  totalCount: number;
+  averageRating: number;
+  ratingsDistribution: {
+    [key: number]: number;
+  };
+  sourceDistribution: {
+    [key: string]: number;
+  };
+  statusDistribution: {
+    [key: string]: number;
+  };
+  recentTrend: {
+    date: string;
+    count: number;
+    averageRating: number;
+  }[];
+}
+
+// Tạo instance axios với xử lý lỗi và JWT token
 const api = axios.create({
   baseURL: API_URL,
 });
 
-api.interceptors.response.use(
-  (response) => response,
+// Thêm JWT token vào requests nếu có
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
 
-// Metro Lines
-export const getAllLines = async (params = {}) => {
-  try {
-    const response = await api.get('/lines', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Failed to get lines:', error);
-    return { lines: mockLines };
+// Xử lý lỗi response
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error.response?.data || error.message);
+    
+    // Xử lý JWT token hết hạn
+    if (error.response?.status === 401) {
+      // Token hết hạn hoặc không hợp lệ, chuyển hướng đến trang đăng nhập
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Optional: Chuyển hướng đến trang đăng nhập
+        // window.location.href = '/login';
+      }
+    }
+    
+    return Promise.reject(error);
   }
-};
+);
 
-export const getLineById = async (id: string) => {
-  try {
-    const response = await api.get(`/lines/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to get line ${id}:`, error);
-    const mockLine = mockLines.find(line => line.id === id);
-    return mockLine || null;
-  }
-};
-
-export const createLine = async (lineData: Partial<MetroLine>) => {
-  try {
-    const response = await api.post('/lines', lineData);
-    return response.data;
-  } catch (error) {
-    console.error('Failed to create line:', error);
-    throw error;
-  }
-};
-
-export const updateLine = async (id: string, lineData: Partial<MetroLine>) => {
-  try {
-    const response = await api.put(`/lines/${id}`, lineData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to update line ${id}:`, error);
-    throw error;
-  }
-};
-
-export const deleteLine = async (id: string) => {
-  try {
-    const response = await api.delete(`/lines/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to delete line ${id}:`, error);
-    throw error;
-  }
-};
-
-// Stations
-export const getAllStations = async (params = {}) => {
-  try {
-    const response = await api.get('/stations', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Failed to get stations:', error);
-    return { stations: mockStations };
-  }
-};
-
-export const getStationById = async (id: string) => {
-  try {
-    const response = await api.get(`/stations/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to get station ${id}:`, error);
-    const mockStation = mockStations.find(station => station.id === id);
-    return mockStation || null;
-  }
-};
-
-export const createStation = async (stationData: Partial<Station>) => {
-  try {
-    const response = await api.post('/stations', stationData);
-    return response.data;
-  } catch (error) {
-    console.error('Failed to create station:', error);
-    throw error;
-  }
-};
-
-export const updateStation = async (id: string, stationData: Partial<Station>) => {
-  try {
-    const response = await api.put(`/stations/${id}`, stationData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to update station ${id}:`, error);
-    throw error;
-  }
-};
-
-export const deleteStation = async (id: string) => {
-  try {
-    const response = await api.delete(`/stations/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to delete station ${id}:`, error);
-    throw error;
-  }
-};
-
-// Routes - Adding the missing searchRoutes function
-export const searchRoutes = async (origin: string, destination: string, time: string): Promise<RouteOption[]> => {
-  try {
-    const response = await api.get('/routes/search', {
-      params: { origin, destination, time }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Failed to search routes:', error);
-    return [];
-  }
-};
-
-// Tickets
-export const getAllTickets = async (params = {}) => {
-  try {
-    const response = await api.get('/tickets', { params });
-    return response.data;
-  } catch (error) {
-    console.error('Failed to get tickets:', error);
-    return { tickets: mockTickets };
-  }
-};
-
-export const getTicketById = async (id: string) => {
-  try {
-    const response = await api.get(`/tickets/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to get ticket ${id}:`, error);
-    const mockTicket = mockTickets.find(ticket => ticket.id === id);
-    return mockTicket || null;
-  }
-};
-
-export const createTicket = async (ticketData: Partial<Ticket>) => {
-  try {
-    const response = await api.post('/tickets', ticketData);
-    return response.data;
-  } catch (error) {
-    console.error('Failed to create ticket:', error);
-    throw error;
-  }
-};
-
-export const updateTicket = async (id: string, ticketData: Partial<Ticket>) => {
-  try {
-    const response = await api.put(`/tickets/${id}`, ticketData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to update ticket ${id}:`, error);
-    throw error;
-  }
-};
-
-export const deleteTicket = async (id: string) => {
-  try {
-    const response = await api.delete(`/tickets/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to delete ticket ${id}:`, error);
-    throw error;
-  }
-};
-
-export const purchaseTicket = async (ticketId: string, quantity: number, userId?: string) => {
-  try {
-    const response = await api.post('/tickets/purchase', { ticketId, quantity, userId });
-    return response.data;
-  } catch (error) {
-    console.error('Failed to purchase ticket:', error);
-    throw error;
-  }
-};
-
-// Users
-export const getAllUsers = async () => {
-  try {
-    console.log("🟢 Đang gọi API:", `${API_URL}/users`);
-    const response = await axios.get(`${API_URL}/users`);
-    console.log("✅ API trả về:", response.data);
-
-    return response.data || []; // Trả về mảng rỗng nếu không có dữ liệu
-  } catch (error) {
-    console.error("❌ Lỗi gọi API:", error.message);
-    console.error("📌 Chi tiết lỗi:", error.response ? error.response.data : error);
-    return []; // Trả về mảng rỗng nếu có lỗi
-  }
-};
-
-
-
-export const getUserById = async (id: string) => {
-  try {
-    const response = await api.get(`/users/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to get user ${id}:`, error);
-    throw error;
-  }
-};
-
-export const createUser = async (userData: Partial<User>) => {
-  try {
-    const response = await api.post('/users', userData);
-    return response.data;
-  } catch (error) {
-    console.error('Failed to create user:', error);
-    throw error;
-  }
-};
-
-export const updateUser = async (id: string, userData: Partial<User>) => {
-  try {
-    const response = await api.put(`/users/${id}`, userData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to update user ${id}:`, error);
-    throw error;
-  }
-};
-
-export const deleteUser = async (id: string) => {
-  try {
-    const response = await api.delete(`/users/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to delete user ${id}:`, error);
-    throw error;
-  }
-};
-
-export const updateUserPreferences = async (id: string, preferencesData: any) => {
-  try {
-    const response = await api.put(`/users/${id}/preferences`, preferencesData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to update user preferences ${id}:`, error);
-    throw error;
-  }
-};
-
-export const exportUsers = async () => {
-  try {
-    const response = await api.get('/users/export');
-    return response.data;
-  } catch (error) {
-    console.error('Failed to export users:', error);
-    throw error;
-  }
-};
-
-// Feedback
-export const submitFeedback = async (feedbackData: Omit<Feedback, 'date'>) => {
-  return handleApiCall(
-    api.post('/feedback', {
-      ...feedbackData,
-      date: new Date().toISOString()
-    }),
-    { success: true, message: 'Feedback submitted successfully' }
-  );
-};
 // Tạo một function tổng quát để xử lý API calls
 const handleApiCall = async (apiCall: Promise<any>, mockData: any) => {
   try {
@@ -404,4 +189,159 @@ const handleApiCall = async (apiCall: Promise<any>, mockData: any) => {
     // Trả về mock data nếu API call thất bại
     return mockData;
   }
+};
+
+// Import mock data để sử dụng khi API không khả dụng
+import { mockTickets, mockLines, mockStations } from '@/utils/mockData';
+
+// Metro Lines
+export const getAllLines = async (params = {}) => {
+  return handleApiCall(api.get('/lines', { params }), { lines: mockLines });
+};
+
+export const getLineById = async (id: string) => {
+  return handleApiCall(api.get(`/lines/${id}`), mockLines.find(line => line.id === id) || null);
+};
+
+export const createLine = async (lineData: Partial<MetroLine>) => {
+  return await api.post('/lines', lineData);
+};
+
+export const updateLine = async (id: string, lineData: Partial<MetroLine>) => {
+  return await api.put(`/lines/${id}`, lineData);
+};
+
+export const deleteLine = async (id: string) => {
+  return await api.delete(`/lines/${id}`);
+};
+
+// Stations
+export const getAllStations = async (params = {}) => {
+  return handleApiCall(api.get('/stations', { params }), { stations: mockStations });
+};
+
+export const getStationById = async (id: string) => {
+  return handleApiCall(api.get(`/stations/${id}`), mockStations.find(station => station.id === id) || null);
+};
+
+export const createStation = async (stationData: Partial<Station>) => {
+  return await api.post('/stations', stationData);
+};
+
+export const updateStation = async (id: string, stationData: Partial<Station>) => {
+  return await api.put(`/stations/${id}`, stationData);
+};
+
+export const deleteStation = async (id: string) => {
+  return await api.delete(`/stations/${id}`);
+};
+
+// Routes 
+export const searchRoutes = async (origin: string, destination: string, time: string): Promise<RouteOption[]> => {
+  return handleApiCall(
+    api.get('/routes/search', { params: { origin, destination, time } }), 
+    []
+  );
+};
+
+// Tickets
+export const getAllTickets = async (params = {}) => {
+  return handleApiCall(api.get('/tickets', { params }), { tickets: mockTickets });
+};
+
+export const getTicketById = async (id: string) => {
+  return handleApiCall(api.get(`/tickets/${id}`), mockTickets.find(ticket => ticket.id === id) || null);
+};
+
+export const createTicket = async (ticketData: Partial<Ticket>) => {
+  return await api.post('/tickets', ticketData);
+};
+
+export const updateTicket = async (id: string, ticketData: Partial<Ticket>) => {
+  return await api.put(`/tickets/${id}`, ticketData);
+};
+
+export const deleteTicket = async (id: string) => {
+  return await api.delete(`/tickets/${id}`);
+};
+
+export const purchaseTicket = async (ticketId: string, quantity: number, userId?: string) => {
+  return await api.post('/tickets/purchase', { ticketId, quantity, userId });
+};
+
+// Users
+export const getAllUsers = async (params = {}) => {
+  return handleApiCall(api.get('/users', { params }), { users: [] });
+};
+
+export const getUserById = async (id: string) => {
+  return handleApiCall(api.get(`/users/${id}`), null);
+};
+
+export const createUser = async (userData: Partial<User>) => {
+  return await api.post('/users', userData);
+};
+
+export const updateUser = async (id: string, userData: Partial<User>) => {
+  return await api.put(`/users/${id}`, userData);
+};
+
+export const deleteUser = async (id: string) => {
+  return await api.delete(`/users/${id}`);
+};
+
+export const updateUserPreferences = async (id: string, preferencesData: any) => {
+  return await api.put(`/users/${id}/preferences`, preferencesData);
+};
+
+export const exportUsers = async () => {
+  return handleApiCall(api.get('/users/export'), { url: '' });
+};
+
+// Feedback
+export const getAllFeedback = async (params = {}) => {
+  return handleApiCall(api.get('/feedback', { params }), { feedback: [] });
+};
+
+export const getFeedbackById = async (id: string) => {
+  return handleApiCall(api.get(`/feedback/${id}`), null);
+};
+
+export const submitFeedback = async (feedbackData: Omit<Feedback, 'date' | '_id' | 'status'>) => {
+  return handleApiCall(
+    api.post('/feedback', {
+      ...feedbackData,
+      date: new Date().toISOString(),
+      status: 'new'
+    }),
+    { success: true, message: 'Feedback submitted successfully' }
+  );
+};
+
+export const updateFeedback = async (id: string, feedbackData: Partial<Feedback>) => {
+  return handleApiCall(
+    api.put(`/feedback/${id}`, feedbackData),
+    { success: true, message: 'Feedback updated successfully' }
+  );
+};
+
+export const deleteFeedback = async (id: string) => {
+  return handleApiCall(
+    api.delete(`/feedback/${id}`),
+    { success: true, message: 'Feedback deleted successfully' }
+  );
+};
+
+export const getFeedbackStats = async () => {
+  return handleApiCall(
+    api.get('/feedback/stats'),
+    {
+      totalCount: 0,
+      averageRating: 0,
+      ratingsDistribution: {},
+      sourceDistribution: {},
+      statusDistribution: {},
+      recentTrend: []
+    }
+  );
 };

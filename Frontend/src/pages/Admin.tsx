@@ -8,6 +8,7 @@ import TicketsTab from "@/components/admin/TicketsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import UserProfileTab from "@/components/admin/UserProfileTab";
 import SystemSettingsTab from "@/components/admin/SystemSettingsTab";
+import FeedbackTab from "@/components/admin/FeedbackTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import SearchBar from "@/components/admin/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,7 +27,8 @@ import {
   Train,
   MapPin,
   UserCog,
-  Cog
+  Cog,
+  MessageSquare
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { 
@@ -267,6 +269,10 @@ const Admin = () => {
                 <Users className="h-4 w-4" />
                 <span>Người dùng</span>
               </TabsTrigger>
+              <TabsTrigger value="feedback" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span>Phản hồi</span>
+              </TabsTrigger>
               <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
                 <UserCog className="h-4 w-4" />
                 <span>Hồ sơ</span>
@@ -278,7 +284,7 @@ const Admin = () => {
             </TabsList>
           </motion.div>
 
-          {activeTab !== "dashboard" && activeTab !== "profile" && activeTab !== "settings" && (
+          {activeTab !== "dashboard" && activeTab !== "profile" && activeTab !== "settings" && activeTab !== "feedback" && (
             <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           )}
 
@@ -300,6 +306,10 @@ const Admin = () => {
 
           <TabsContent value="users" className="bg-transparent">
             <UsersTab searchTerm={searchTerm} />
+          </TabsContent>
+
+          <TabsContent value="feedback" className="bg-transparent">
+            <FeedbackTab />
           </TabsContent>
 
           <TabsContent value="profile" className="bg-transparent">

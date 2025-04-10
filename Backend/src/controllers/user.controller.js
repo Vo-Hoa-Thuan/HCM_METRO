@@ -20,6 +20,7 @@ exports.registerUser = async (req, res) => {
             name,
             password: hashedPassword, // Lưu mật khẩu đã mã hóa
             role: "user", // Mặc định role là user
+            signupType: "phone",
         });
 
         res.status(201).json({ message: "Đăng ký thành công", userId: newUser._id });
@@ -28,7 +29,6 @@ exports.registerUser = async (req, res) => {
         res.status(500).json({ error: "Lỗi khi đăng ký user" });
     }
 };
-
 
 // 🔵 [GET] Lấy danh sách user
 exports.getUsers = async (req, res) => {
@@ -41,6 +41,63 @@ exports.getUsers = async (req, res) => {
         res.status(500).json({ error: "Lỗi khi lấy danh sách user" });
     }
 };
+
+exports.createUser = async (req, res) => {
+    try {
+        const { signupType, phoneNumber, name, password, role, email , address} = req.body;
+
+        if (signupType === "phone") {
+            if (!phoneNumber || !password || !name || !role) {
+                return res.status(400).json({ error: "Thiếu thông tin đăng ký bằng SĐT" });
+            }
+
+            const existingUser = await User.findOne({ phoneNumber });
+            if (existingUser) {
+                return res.status(400).json({ error: "Số điện thoại đã được sử dụng" });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const newUser = await User.create({
+                phoneNumber,
+                name,
+                password: hashedPassword,   
+                role,
+                address,
+                signupType
+            });
+
+            return res.status(201).json({ message: "Đăng ký bằng SĐT thành công", userId: newUser._id });
+
+        } else if (signupType === "google") {
+            if (!email || !name || !role) {
+                return res.status(400).json({ error: "Thiếu thông tin đăng ký bằng Google" });
+            }
+
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ error: "Email đã được sử dụng" });
+            }
+
+            const newUser = await User.create({
+                email,
+                name,
+                role,
+                address,
+                signupType
+            });
+
+            return res.status(201).json({ message: "Đăng ký bằng Google thành công", userId: newUser._id });
+        } else {
+            return res.status(400).json({ error: "Hình thức đăng ký không hợp lệ" });
+        }
+
+    } catch (error) {
+        console.error("Lỗi khi đăng ký user:", error);
+        res.status(500).json({ error: "Lỗi khi đăng ký user" });
+    }
+};
+
 
 // 🟡 [GET] Lấy user theo ID
 exports.getUserById = async (req, res) => {
