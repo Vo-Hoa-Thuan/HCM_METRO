@@ -9,7 +9,7 @@ import { motion } from "@/components/ui/motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllUsers, createUser, updateUser, deleteUser, exportUsers } from "@/api/userApi";
+import { getAllUsers,getUserById, createUser, updateUser, deleteUser, exportUsers } from "@/api/userApi";
 import UserForm from "./UserForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,6 +27,9 @@ const timeOptions = [
   { label: "Năm nay", value: "year" },
 ];
 
+type Role = "admin" | "staff" | "user"
+type Status = "active" | "inactive" | "suspended";
+
 const UsersTab = ({ searchTerm }: UsersTabProps) => {
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -37,10 +40,10 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
     name: '',
     email: '',
     password: '',
-    role: '',
+    role: 'user' as Role,
     phoneNumber: '',
     address: '',
-    status: 'active',
+    status: 'active' as Status,
   });
   
   const [selectedTab, setSelectedTab] = useState("all");
@@ -55,24 +58,44 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
   const [isLoadingUsers, setIsLoading] = useState(true);
   const [usersError, setError] = useState(null);
 
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAllUsers();
+      console.log("Dữ liệu nhận được từ API:", data);
+      setUsersData(data);
+    } catch (err: any) {
+      setError(err.message);
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải danh sách người dùng.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+  
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setIsLoading(true); 
-        const data = await getAllUsers();
-        console.log("Dữ liệu nhận được từ API:", data);
-        setUsersData(data); 
-      } catch (err) {
-        setError(err.message); 
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []); 
-
+    if (isEditDialogOpen && currentUser?._id) {
+      const fetchUserData = async () => {
+        try {
+          const userData = await getUserById(currentUser._id);
+          setFormData(userData);
+        } catch (error) {
+          console.error("Error fetching user data", error);
+        }
+      };
+      fetchUserData();
+    }
+  }, [isEditDialogOpen, currentUser]);
+  
+  
 
   const createUserMutation = useMutation({
     mutationFn: createUser,
@@ -93,44 +116,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       });
     }
   });
-
-  const updateUserMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateUser(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setIsEditDialogOpen(false);
-      toast({
-        title: "Thành công",
-        description: "Cập nhật người dùng thành công",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Lỗi",
-        description: `Không thể cập nhật người dùng: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
-        variant: "destructive",
-      });
-    }
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: deleteUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setIsDeleteDialogOpen(false);
-      toast({
-        title: "Thành công",
-        description: "Xóa người dùng thành công",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Lỗi",
-        description: `Không thể xóa người dùng: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`,
-        variant: "destructive",
-      });
-    }
-  });
+  
 
   const exportUsersMutation = useMutation({
     mutationFn: exportUsers,
@@ -152,9 +138,6 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
   });
   
   const userData = usersData || [];   
-  console.log("Dữ liệu API nhận được:", usersData);
-  console.log("Danh sách users:", usersData);
-
   
   const filteredUsers = userData.filter(
     (user: any) => {
@@ -220,77 +203,126 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       name: '',
       email: '',
       password: '',
-      role: '',
+      role: 'user' as Role,
       phoneNumber: '',
       address: '',
       status: 'active',
     });
   };
 
-  const handleEditClick = (user: any) => {
-    setCurrentUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      password: '',
-      role: user.role,
-      phoneNumber: user.phoneNumber || '',
-      address: user.address || '',
-      status: user.status,
-    });
-    setIsEditDialogOpen(true);
+  const handleEditClick = async (user: any) => {
+    try {
+      const userData = await getUserById(user._id); 
+      setCurrentUser(userData);
+    
+      setFormData({
+        name: userData.name,
+        email: userData.email,
+        password: '',
+        role: userData.role,
+        phoneNumber: userData.phoneNumber || '',
+        address: userData.address || '',
+        status: userData.status,
+      });
+      console.log('User object:', user);
+      setIsEditDialogOpen(true);
+    } catch (error) {
+      console.error('Lỗi khi lấy user:', error);
+    }
   };
+  
+  
 
   const handleDeleteClick = (user: any) => {
     setCurrentUser(user);
     setIsDeleteDialogOpen(true);
   };
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (useMockData) {
+  
+    try {
+      const response = await createUser(formData as any);
       toast({
         title: "Thành công",
-        description: "Tạo người dùng mới thành công (dữ liệu mẫu)",
+        description: response.message || "Tạo người dùng thành công",
+        className: "bg-success text-white",
       });
+  
       setIsCreateDialogOpen(false);
       resetForm();
-    } else {
-      createUserMutation.mutate(formData as any);
+      fetchUsers(); 
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: `Không thể tạo người dùng: ${
+          error instanceof Error ? error.message : "Lỗi không xác định"
+        }`,
+        variant: "destructive",
+      });
     }
   };
+  
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     if (currentUser) {
-      if (useMockData) {
+      try {
+        const updatedData = { ...formData };
+        if (!updatedData.password) {
+          delete updatedData.password;
+        }
+  
+        const response = await updateUser(currentUser._id, updatedData); 
+        console.log("RESPONSE:", response);
         toast({
           title: "Thành công",
-          description: "Cập nhật người dùng thành công (dữ liệu mẫu)",
+          description: response.message || "Cập nhật người dùng thành công",
+          className: "bg-success text-white",
         });
+  
         setIsEditDialogOpen(false);
-      } else {
-        updateUserMutation.mutate({
-          id: currentUser._id,
-          data: formData
-        });
-      }
-    }
-  };
-
-  const handleDeleteConfirm = () => {
-    if (currentUser) {
-      if (useMockData) {
+        fetchUsers();  
+      } catch (error) {
         toast({
-          title: "Thành công",
-          description: "Xóa người dùng thành công (dữ liệu mẫu)",
+          title: "Lỗi",
+          description: `Không thể cập nhật người dùng: ${
+            error instanceof Error ? error.message : "Lỗi không xác định"
+          }`,
+          variant: "destructive",
         });
-        setIsDeleteDialogOpen(false);
-      } else {
-        deleteUserMutation.mutate(currentUser._id);
       }
     }
   };
+  
+  
+
+  const handleDeleteConfirm = async () => {
+    if (!currentUser) return;
+  
+    try {
+      const response = await deleteUser(currentUser._id);
+      toast({
+        title: "Thành công",
+        description: response.message || "Xóa người dùng thành công",
+        className: "bg-success text-white",
+      });
+  
+      setIsDeleteDialogOpen(false);
+      fetchUsers(); 
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: `Không thể xóa người dùng: ${
+          error instanceof Error ? error.message : "Lỗi không xác định"
+        }`,
+        variant: "destructive",
+      });
+    }
+  };
+  
 
   const getInitials = (name: string) => {
     return name
@@ -687,3 +719,4 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
 };
 
 export default UsersTab;
+

@@ -30,7 +30,7 @@ api.interceptors.response.use(
 
 export const getAllUsers = async () => {
   try {
-    const response = await axios.get(`${API_URL}/users`);
+    const response = await api.get(`/users`);
     return response.data || [];
   } catch (error) {
     return [];
@@ -50,7 +50,7 @@ export const getUserById = async (id: string) => {
 
 export const createUser = async (userData: Partial<User>) => {
   try {
-    const response = await api.post('/users/register', userData);
+    const response = await api.post(`/users/register`, userData);
     return response.data;
   } catch (error) {
     console.error('Failed to create user:', error);

@@ -1,9 +1,14 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 
@@ -31,6 +36,25 @@ const UserForm: React.FC<UserFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 py-4">
+        {/* Chọn hình thức đăng ký */}
+        {!isEditing && (
+          <div className="space-y-2">
+            <Label htmlFor="signupType">Hình thức đăng ký</Label>
+            <Select
+              value={formData.signupType || "phone"}
+              onValueChange={(value) => handleSelectChange("signupType", value)}
+            >
+              <SelectTrigger id="signupType">
+                <SelectValue placeholder="Chọn hình thức" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="phone">SĐT + Mật khẩu</SelectItem>
+                <SelectItem value="google">Đăng ký bằng Google</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="name">Họ tên</Label>
           <Input
@@ -43,21 +67,25 @@ const UserForm: React.FC<UserFormProps> = ({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email || ''}
-            onChange={handleInputChange}
-            placeholder="example@mail.com"
-            required
-            disabled={isEditing}
-          />
-        </div>
+        {/* Chỉ hiện email nếu chọn Google */}
+        {!isEditing && formData.signupType === "google" && (
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email || ''}
+              onChange={handleInputChange}
+              placeholder="example@mail.com"
+              required
+              disabled={isEditing}
+            />
+          </div>
+        )}
 
-        {!isEditing && (
+        {/* Hiện password nếu đăng ký bằng SĐT */}
+        {!isEditing && formData.signupType === "phone" && (
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
             <Input
@@ -72,7 +100,8 @@ const UserForm: React.FC<UserFormProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        {/* Số điện thoại chỉ cần nếu là đăng ký qua phone */}
+        {formData.signupType === "phone" && (
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Số điện thoại</Label>
             <Input
@@ -83,22 +112,23 @@ const UserForm: React.FC<UserFormProps> = ({
               placeholder="0901234567"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Vai trò</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => handleSelectChange('role', value)}
-            >
-              <SelectTrigger id="role">
-                <SelectValue placeholder="Chọn vai trò" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="User">Người dùng</SelectItem>
-                <SelectItem value="Moderator">Điều hành viên</SelectItem>
-                <SelectItem value="Admin">Quản trị viên</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="role">Vai trò</Label>
+          <Select
+            value={formData.role}
+            onValueChange={(value) => handleSelectChange('role', value)}
+          >
+            <SelectTrigger id="role">
+              <SelectValue placeholder="Chọn vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user">Người dùng</SelectItem>
+              <SelectItem value="staff">Điều hành viên</SelectItem>
+              <SelectItem value="admin">Quản trị viên</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -130,9 +160,8 @@ const UserForm: React.FC<UserFormProps> = ({
             </Select>
           </div>
         )}
-
-        
       </div>
+
       <DialogFooter>
         <Button 
           type="button" 

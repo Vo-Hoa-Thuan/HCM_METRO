@@ -54,42 +54,36 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-// 🟠 [PUT] Cập nhật user
+
 exports.updateUser = async (req, res) => {
     try {
-        const { name, email, phone, role } = req.body;
-
-        // Kiểm tra user tồn tại trước khi cập nhật
+        const { name, email, phoneNumber, role, address, status } = req.body;
         const userExists = await User.exists({ _id: req.params.id });
         if (!userExists) return res.status(404).json({ error: "User không tồn tại" });
-
-        // Nếu không phải admin, không được thay đổi role
-        const updateData = { name, email, phone };
-        if (req.user?.role === 'admin') {
-            updateData.role = role;
-        }
+        const updateData = {name, email, phoneNumber, role ,address,status};
 
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
             updateData,
             { new: true, runValidators: true }
         );
-
-        res.json(updatedUser);
+        console.log("🔁 Dữ liệu cập nhật:", updateData);
+        console.log("✅ Kết quả trả về:", updatedUser);
+        
+        res.status(200).json({
+            message: "Cập nhật thành công",
+            user: updatedUser,
+        });
     } catch (error) {
         console.error("Lỗi khi cập nhật user:", error);
         res.status(500).json({ error: "Lỗi khi cập nhật user" });
     }
 };
 
+
 // 🔴 [DELETE] Xóa user
 exports.deleteUser = async (req, res) => {
     try {
-        // Chỉ admin mới được xóa user
-        if (req.user?.role !== 'admin') {
-            return res.status(403).json({ error: "Bạn không có quyền xóa user" });
-        }
-
         const userExists = await User.exists({ _id: req.params.id });
         if (!userExists) return res.status(404).json({ error: "User không tồn tại" });
 
