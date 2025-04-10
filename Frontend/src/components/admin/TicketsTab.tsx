@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Edit, 
-  Trash2, 
-  Ticket, 
+  Trash2,
   Plus, 
+  Ticket as TicketIcon,
   ChevronDown,
   AlertCircle,
   Loader2,
@@ -20,7 +20,7 @@ import { motion } from "@/components/ui/motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllTickets, createTicket, updateTicket, deleteTicket } from "@/api/metroApi";
+import { Tickets , getTickets, createTicket, updateTicket, deleteTicket } from "@/api/ticketsAPI";
 import TicketForm from "./TicketForm";
 
 interface TicketsTabProps {
@@ -32,19 +32,19 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentTicket, setCurrentTicket] = useState<any>(null);
+  const [currentTicket, setCurrentTicket] = useState<Tickets>(null);
   const [formData, setFormData] = useState({
     name: '',
-    type: 'single',
+    category: 'luot',
+    sub_type: 'thuong',
     price: 20000,
     description: '',
-    validityPeriod: '24 giờ',
+    trip_limit: null,
+    discount_percent: 0,
     restrictions: '',
-    isDiscounted: false,
-    discountPercentage: 0,
-    status: 'active',
     availableFrom: '',
-    availableUntil: ''
+    availableUntil: '',
+    status: 'active',
   });
   
   const { toast } = useToast();
@@ -57,7 +57,7 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
     error: ticketsError 
   } = useQuery({
     queryKey: ['tickets'],
-    queryFn: () => getAllTickets()
+    queryFn: () => getTickets()
   });
 
   // Create ticket mutation
@@ -81,9 +81,11 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
     }
   });
 
+  console.log("Tickets data:", ticketsData);
+
   // Update ticket mutation
   const updateTicketMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateTicket(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Tickets }) => updateTicket(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setIsEditDialogOpen(false);
@@ -122,19 +124,22 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   });
 
   // Filter tickets based on search term
-  const filteredTickets = ticketsData?.tickets?.filter(
-    (ticket: any) => 
+  const filteredTickets = ticketsData?.filter(
+    (ticket: Tickets) => 
       ticket.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.type.toLowerCase().includes(searchTerm.toLowerCase())
+      ticket.category.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+  
 
   // Toggle expanded ticket
   const toggleExpandTicket = (ticketId: string) => {
+    console.log("Trạng thái trước:", expandedTicket);
     if (expandedTicket === ticketId) {
       setExpandedTicket(null);
     } else {
       setExpandedTicket(ticketId);
     }
+    console.log("Trạng thái sau:", ticketId);
   };
 
   // Handle form input changes
@@ -162,7 +167,7 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   const resetForm = () => {
     setFormData({
       name: '',
-      type: 'single',
+      category: 'single',
       price: 20000,
       description: '',
       validityPeriod: '24 giờ',
@@ -176,26 +181,27 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   };
 
   // Handle edit ticket click
-  const handleEditClick = (ticket: any) => {
+  const handleEditClick = (ticket: Tickets) => {
     setCurrentTicket(ticket);
     setFormData({
       name: ticket.name,
-      type: ticket.type,
+      category: ticket.category,
+      sub_type: ticket.sub_type,
       price: ticket.price,
-      description: ticket.description,
-      validityPeriod: ticket.validityPeriod || '',
+      description: ticket.description || '',
+      trip_limit: ticket.trip_limit || null,
+      discount_percent: ticket.discount_percent || 0,
       restrictions: ticket.restrictions || '',
-      isDiscounted: ticket.isDiscounted || false,
-      discountPercentage: ticket.discountPercentage || 0,
-      status: ticket.status || 'active',
       availableFrom: ticket.availableFrom || '',
-      availableUntil: ticket.availableUntil || ''
+      availableUntil: ticket.availableUntil || '',
+      status: ticket.status,
     });
     setIsEditDialogOpen(true);
   };
 
   // Handle delete ticket click
-  const handleDeleteClick = (ticket: any) => {
+  const handleDeleteClick = (ticket: Tickets) => {
+    console.log("Đang xóa vé:", ticket);
     setCurrentTicket(ticket);
     setIsDeleteDialogOpen(true);
   };
@@ -203,20 +209,24 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   // Handle create form submit
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const ticketData = {
-      id: `ticket-${Date.now()}`, // Generate a unique ID
-      ...formData
+    const ticketData = { 
+      ...formData,
+      trip_limit: formData.trip_limit || null, // Đảm bảo giá trị null nếu không có
     };
-    createTicketMutation.mutate(ticketData as any);
+    createTicketMutation.mutate(ticketData as Tickets);
   };
 
   // Handle edit form submit
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentTicket) {
+      const updatedData = {
+        ...formData,
+        trip_limit: formData.trip_limit || null, // Đảm bảo giá trị null nếu không có
+      };
       updateTicketMutation.mutate({
-        id: currentTicket.id,
-        data: formData
+        id: currentTicket._id,
+        data: updatedData as Tickets,
       });
     }
   };
@@ -224,7 +234,7 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   // Handle delete confirm
   const handleDeleteConfirm = () => {
     if (currentTicket) {
-      deleteTicketMutation.mutate(currentTicket.id);
+      deleteTicketMutation.mutate(currentTicket._id);
     }
   };
 
@@ -291,9 +301,9 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {filteredTickets.map((ticket: any, index: number) => (
+        {filteredTickets.map((ticket: Tickets, index: number) => (
           <motion.div
-            key={ticket.id}
+            key={ticket._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.05 }}
@@ -302,27 +312,23 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
-                    <Ticket className="h-5 w-5 text-primary" />
+                    <TicketIcon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">{ticket.name}</CardTitle>
                     <div className="flex items-center mt-1">
-                      <Badge 
-                        variant="outline" 
-                        className="mr-2"
-                      >
-                        {ticket.type === 'single' ? 'Một lượt' : 
-                         ticket.type === 'return' ? 'Khứ hồi' : 
-                         ticket.type === 'day' ? 'Vé ngày' :
-                         ticket.type === 'week' ? 'Vé tuần' : 'Vé tháng'}
+                      <Badge variant="outline" className="mr-2">
+                        {ticket.category === 'luot' ? 'Vé lượt' : 
+                        ticket.category === 'ngay' ? 'Vé ngày' : 
+                        ticket.category === 'thang' ? 'Vé tháng' : 'Loại khác'}
                       </Badge>
                       <span className="text-sm font-semibold">
-                        {ticket.isDiscounted ? (
+                        {ticket.discount_percent > 0 ? (
                           <span className="flex items-center">
                             <span className="line-through text-muted-foreground mr-1">
                               {formatCurrency(ticket.price)}
                             </span>
-                            {formatCurrency(ticket.price * (1 - ticket.discountPercentage / 100))}
+                            {formatCurrency(ticket.price * (1 - ticket.discount_percent / 100))}
                           </span>
                         ) : formatCurrency(ticket.price)}
                       </span>
@@ -346,10 +352,10 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    onClick={() => toggleExpandTicket(ticket.id)}
-                    className={expandedTicket === ticket.id ? "bg-primary/10" : ""}
+                    onClick={() => toggleExpandTicket(ticket._id)}
+                    className={expandedTicket === ticket._id ? "bg-primary/10" : ""}
                   >
-                    <ChevronDown className={`h-4 w-4 transition-transform ${expandedTicket === ticket.id ? "transform rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 transition-transform ${expandedTicket === ticket._id ? "transform rotate-180" : ""}`} />
                   </Button>
                 </div>
               </CardHeader>
@@ -362,12 +368,12 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                 {ticket.validityPeriod && (
                   <div className="flex items-center mt-2 text-xs">
                     <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                    <span>Thời hạn: {ticket.validityPeriod}</span>
+                    <span>Thời hạn: {ticket.validityPeriod} ngày</span>
                   </div>
                 )}
               </CardContent>
               
-              {expandedTicket === ticket.id && (
+              {expandedTicket === ticket._id && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -375,12 +381,12 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                   className="px-6 pt-2 pb-4"
                 >
                   <div className="border-t pt-4">
-                    {ticket.restrictions && (
-                      <div className="mb-3">
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Hạn chế:</p>
-                        <p className="text-sm">{ticket.restrictions}</p>
-                      </div>
-                    )}
+                  {ticket.restrictions && (
+                    <div className="mb-3">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Hạn chế:</p>
+                      <p className="text-sm">{ticket.restrictions}</p>
+                    </div>
+                  )}
                     
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {ticket.availableFrom && (
@@ -391,7 +397,6 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                           </span>
                         </div>
                       )}
-                      
                       {ticket.availableUntil && (
                         <div className="flex items-center">
                           <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
@@ -400,11 +405,10 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                           </span>
                         </div>
                       )}
-                      
-                      {ticket.isDiscounted && (
+                      {ticket.discount_percent > 0 && (
                         <div className="flex items-center">
                           <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span>Giảm giá: {ticket.discountPercentage}%</span>
+                          <span>Giảm giá: {ticket.discount_percent}%</span>
                         </div>
                       )}
                     </div>
@@ -420,8 +424,8 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                   >
                     {ticket.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
                   </Badge>
-                  <Button size="sm" variant="ghost" onClick={() => toggleExpandTicket(ticket.id)}>
-                    {expandedTicket === ticket.id ? "Thu gọn" : "Chi tiết"}
+                  <Button size="sm" variant="ghost" onClick={() => toggleExpandTicket(ticket._id)}>          
+                    {expandedTicket === ticket._id ? "Thu gọn" : "Chi tiết"}
                   </Button>
                 </div>
               </CardFooter>
@@ -434,7 +438,7 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
         <div className="text-center py-12">
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-              <Ticket className="h-6 w-6 text-muted-foreground" />
+              <TicketIcon className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
           <h3 className="text-lg font-medium">Không tìm thấy vé nào</h3>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,12 +45,12 @@ const TicketForm: React.FC<TicketFormProps> = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="type">Loại vé</Label>
+            <Label htmlFor="category">Loại vé</Label>
             <Select
               value={formData.type || ''}
-              onValueChange={(value) => handleSelectChange('type', value)}
+              onValueChange={(value) => handleSelectChange('category', value)}
             >
-              <SelectTrigger id="type">
+              <SelectTrigger id="category">
                 <SelectValue placeholder="Chọn loại vé" />
               </SelectTrigger>
               <SelectContent>

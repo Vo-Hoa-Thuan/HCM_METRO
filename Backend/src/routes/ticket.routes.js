@@ -3,9 +3,11 @@ const router = express.Router();
 const ticketController = require('../controllers/ticket.controller');
 
 router.get('/get', ticketController.getTickets);
-router.get('/:id', ticketController.getTicketById);
+router.get('/get/:id', ticketController.getTicketById);
+router.get('/type/:type', ticketController.getTicketByType);
+router.get('/types', ticketController.getTicketTypes);
 router.post('/create', ticketController.createTicket);
-router.put('/:id/update', ticketController.updateTicket);
-router.delete('/:id/deletedelete', ticketController.deleteTicket);
+router.put('/update/:id', ticketController.updateTicket);
+router.delete('/delete/:id', ticketController.deleteTicket);
 
 module.exports = router;
