@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { motion } from "@/components/ui/motion";
 
+
 const loginSchema = z.object({
   phone: z.string().min(10, { message: "Số điện thoại không hợp lệ" }),
   password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
@@ -39,13 +40,21 @@ const Login = () => {
       password: "",
     },
   });
-
   const onSubmit = async (values: LoginFormValues) => {
     setGeneralError("");
-
+  
     try {
       await login(values.phone, values.password);
-     
+  
+      // Kiểm tra thông tin trang đích trong localStorage
+      const redirectData = localStorage.getItem("redirectAfterLogin");
+      if (redirectData) {
+        const { path, state } = JSON.parse(redirectData);
+        localStorage.removeItem("redirectAfterLogin");
+        navigate(path, { state }); 
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       setGeneralError(error.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     }

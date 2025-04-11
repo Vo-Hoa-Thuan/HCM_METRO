@@ -1,15 +1,11 @@
 const express = require('express');
-const Station = require('../models/station.model');
-
 const router = express.Router();
+const stationController = require('../controllers/station.controller');
 
-router.get('/stations', async (req, res) => {
-    try {
-        const stations = await Station.find();
-        res.json(stations);
-    } catch (error) {
-        res.status(500).json({ message: "❌ Error fetching stations" });
-    }
-});
+router.get('/get', stationController.getAllStations);
+router.get('/get/:id', stationController.getStationById);
+router.post('/create', stationController.createStation); 
+router.put('/update/:id', stationController.updateStation); 
+router.delete('/delete/:id', stationController.deleteStation); 
 
 module.exports = router;

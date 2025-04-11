@@ -63,7 +63,7 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   // Create ticket mutation
   const createTicketMutation = useMutation({
     mutationFn: createTicket,
-    onSuccess: () => {
+      onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setIsCreateDialogOpen(false);
       toast({
@@ -80,8 +80,6 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
       });
     }
   });
-
-  console.log("Tickets data:", ticketsData);
 
   // Update ticket mutation
   const updateTicketMutation = useMutation({
@@ -209,11 +207,13 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
   // Handle create form submit
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Dữ liệu vé mới:", formData); 
     const ticketData = { 
       ...formData,
-      trip_limit: formData.trip_limit || null, // Đảm bảo giá trị null nếu không có
+      trip_limit: formData.trip_limit || null,
     };
     createTicketMutation.mutate(ticketData as Tickets);
+    resetForm();
   };
 
   // Handle edit form submit
@@ -287,7 +287,7 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
               </DialogDescription>
             </DialogHeader>
             <TicketForm
-              formData={formData}
+              formData={formData}          
               handleInputChange={handleInputChange}
               handleSelectChange={handleSelectChange}
               handleSwitchChange={handleSwitchChange}
@@ -320,7 +320,10 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
                       <Badge variant="outline" className="mr-2">
                         {ticket.category === 'luot' ? 'Vé lượt' : 
                         ticket.category === 'ngay' ? 'Vé ngày' : 
-                        ticket.category === 'thang' ? 'Vé tháng' : 'Loại khác'}
+                        ticket.category === 'thang' ? 'Vé tháng': 
+                        ticket.category === 'tuan' ? 'Vé tuần' :
+                        ticket.category === 'khu hoi' ? 'Vé khứ hồi':
+                        ticket.category === 'nhom' ? 'Vé nhóm' : ''}
                       </Badge>
                       <span className="text-sm font-semibold">
                         {ticket.discount_percent > 0 ? (

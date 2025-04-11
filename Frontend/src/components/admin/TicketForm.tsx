@@ -54,11 +54,12 @@ const TicketForm: React.FC<TicketFormProps> = ({
                 <SelectValue placeholder="Chọn loại vé" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="single">Một lượt</SelectItem>
-                <SelectItem value="return">Khứ hồi</SelectItem>
-                <SelectItem value="day">Vé ngày</SelectItem>
-                <SelectItem value="week">Vé tuần</SelectItem>
-                <SelectItem value="month">Vé tháng</SelectItem>
+                <SelectItem value="luot">Một lượt</SelectItem>
+                <SelectItem value="khu hoi">Khứ hồi</SelectItem>
+                <SelectItem value="ngay">Vé ngày</SelectItem>
+                <SelectItem value="tuan">Vé tuần</SelectItem>
+                <SelectItem value="thang">Vé tháng</SelectItem>
+                <SelectItem value="nhom">Vé nhóm</SelectItem>
               </SelectContent>
             </Select>
           </div>

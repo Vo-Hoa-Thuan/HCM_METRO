@@ -16,7 +16,7 @@ export type Station = {
   id: string;
   name: string;
   nameVi: string;
-  coordinates: [number, number]; // [longitude, latitude]
+  coordinates: [number, number]; 
   lines: string[];
   facilities: string[];
   isInterchange: boolean;

@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const TicketSchema = new mongoose.Schema({
     category: { 
         type: String, 
-        enum: ['luot', 'ngay', 'thang'], // Loại chính: lượt, ngày, tháng
+        enum: ['luot', 'ngay', 'tuan', 'thang', 'khu hoi', 'nhom'], 
         required: true 
     },
     sub_type: { 
         type: String, 
-        enum: ['thuong', 'vip', 'sinhvien', 'nguoi_cao_tuoi'], // Kiểu vé phụ
+        enum: ['thuong', 'vip', 'sinhvien', 'nguoi_cao_tuoi'], 
         required: true 
     },
     name: { 

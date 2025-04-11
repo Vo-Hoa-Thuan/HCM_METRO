@@ -1,4 +1,3 @@
-
 // Mock data to use when API calls fail (e.g., no internet connection)
 
 export const mockTickets = [

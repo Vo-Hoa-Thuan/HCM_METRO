@@ -110,10 +110,24 @@ const Tickets = () => {
   
     if (!isLoggedIn) {
       console.log("Người dùng chưa đăng nhập. Hiển thị dialog."); 
+      // Lưu thông tin trang đích vòa localStorage 
+      localStorage.setItem(
+        "redirectAfterLogin",
+        JSON.stringify({
+          path: "/payment",
+          state: {
+            ticketId,
+            quantity,
+            ticketName: tickets.find((ticket) => ticket._id === ticketId)?.name || "Không xác định",
+            ticketPrice: tickets.find((ticket) => ticket._id === ticketId)?.price || 0,
+          },
+        })
+      );
       setIsLoginDialogOpen(true); 
       return;
     }
     
+    // Nếu đã đăng nhập, chuyển hướng đến trang thanh toán
     navigate("/payment", {
       state: {
         ticketId, 

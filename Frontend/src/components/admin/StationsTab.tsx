@@ -21,8 +21,9 @@ import { motion } from "@/components/ui/motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllStations, createStation, updateStation, deleteStation, getAllLines } from "@/api/metroApi";
+import { Station, getAllStations, createStation, updateStation, deleteStation } from "@/api/stationsAPI";
 import StationForm from "./StationForm";
+
 
 interface StationsTabProps {
   searchTerm: string;
@@ -33,7 +34,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentStation, setCurrentStation] = useState<any>(null);
+  const [currentStation, setCurrentStation] = useState<Station>(null);
   const [formData, setFormData] = useState({
     name: '',
     nameVi: '',
@@ -91,7 +92,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
   });
 
   const updateStationMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateStation(id, data),
+    mutationFn: ({ id, data }: { id: string; data: Station }) => updateStation(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stations'] });
       setIsEditDialogOpen(false);
@@ -136,8 +137,8 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     }
   };
 
-  const filteredStations = stationsData?.stations?.filter(
-    (station: any) => 
+  const filteredStations = stationsData?.filter(
+    (station: Station) => 
       station.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
       station.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -152,7 +153,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     
     if (name.includes('.')) {
       const [parent, index] = name.split('.');
-      const updatedArray = [...(formData[parent as keyof typeof formData] as any[])];
+      const updatedArray = [...(formData[parent as keyof typeof formData] as Station[])];
       updatedArray[Number(index)] = value;
       setFormData({ ...formData, [parent]: updatedArray });
     } else {
@@ -198,7 +199,8 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     });
   };
 
-  const handleEditClick = (station: any) => {
+  const handleEditClick = (station: Station) => {
+    console.log("Trạm được chỉnh sửa:", station);
     setCurrentStation(station);
     setFormData({
       name: station.name,
@@ -219,7 +221,8 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (station: any) => {
+  const handleDeleteClick = (station: Station) => {
+    console.log("Trạm xóa:", station);
     setCurrentStation(station);
     setIsDeleteDialogOpen(true);
   };
@@ -235,11 +238,11 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     if (formData.hasBathroom) facilities.push('bathroom');
     
     const stationData = {
-      id: `station-${Date.now()}`,
+      _id: `station-${Date.now()}`,
       ...formData,
       facilities,
     };
-    createStationMutation.mutate(stationData as any);
+    createStationMutation.mutate(stationData as Station);
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
@@ -259,15 +262,15 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
       };
       
       updateStationMutation.mutate({
-        id: currentStation.id,
-        data: updatedData
+        id: currentStation._id,
+        data: updatedData as Station
       });
     }
   };
 
   const handleDeleteConfirm = () => {
     if (currentStation) {
-      deleteStationMutation.mutate(currentStation.id);
+      deleteStationMutation.mutate(currentStation._id);
     }
   };
 
@@ -327,9 +330,9 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredStations.map((station: any, index: number) => (
+        {filteredStations.map((station: Station, index: number) => (
           <motion.div
-            key={station.id}
+            key={station._id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.05 }}
@@ -362,10 +365,10 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    onClick={() => toggleExpandStation(station.id)}
-                    className={expandedStation === station.id ? "bg-accent/10" : ""}
+                    onClick={() => toggleExpandStation(station._id)}
+                    className={expandedStation === station._id ? "bg-accent/10" : ""}
                   >
-                    <ChevronDown className={`h-4 w-4 transition-transform ${expandedStation === station.id ? "transform rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 transition-transform ${expandedStation === station._id ? "transform rotate-180" : ""}`} />
                   </Button>
                 </div>
               </CardHeader>
@@ -401,7 +404,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
                 </div>
               </CardContent>
               
-              {expandedStation === station.id && (
+              {expandedStation === station._id && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -472,8 +475,8 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
                      station.status === 'construction' ? 'Đang xây dựng' : 
                      station.status === 'planned' ? 'Đã lên kế hoạch' : 'Đã đóng'}
                   </Badge>
-                  <Button size="sm" variant="ghost" onClick={() => toggleExpandStation(station.id)}>
-                    {expandedStation === station.id ? "Thu gọn" : "Chi tiết"}
+                  <Button size="sm" variant="ghost" onClick={() => toggleExpandStation(station._id)}>
+                    {expandedStation === station._id ? "Thu gọn" : "Chi tiết"}
                   </Button>
                 </div>
               </CardFooter>

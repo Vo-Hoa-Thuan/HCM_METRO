@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/tickets";
 
 export interface Tickets {
   _id: string;
-  category: 'luot' | 'ngay' | 'thang' | 'khu hoi' | 'nhom';
+  category: 'luot' | 'ngay' | 'tuan' |'thang' | 'khu hoi' | 'nhom';
   sub_type: 'thuong' | 'vip' | 'sinhvien' | 'nguoi_cao_tuoi';
   name: string;
   description?: string;

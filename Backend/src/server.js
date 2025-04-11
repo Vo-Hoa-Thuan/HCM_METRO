@@ -13,6 +13,7 @@ const userRoutes = require("./routes/user.routes");
 const ticketRoutes = require("./routes/ticket.routes");
 const ticketPurchasedRoutes = require("./routes/ticketPurchased.routes");
 const authRoutes = require("./routes/auth.routes");
+const StationRoutes = require("./routes/station.routes"); 
 
 // Cấu hình passport
 require("./config/passportConfig");
@@ -55,6 +56,7 @@ async function startServer() {
     app.use("/users", userRoutes);
     app.use("/tickets", ticketRoutes);
     app.use("/ticketsPurchased", ticketPurchasedRoutes);
+    app.use("/stations", StationRoutes); 
     app.use("/auth", authRoutes);
 
     // Cấu hình cổng cho server

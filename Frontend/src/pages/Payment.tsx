@@ -12,6 +12,11 @@ const Payment = () => {
   // Lấy thông tin từ state được truyền qua navigate
   const { ticketId, quantity, ticketName, ticketPrice } = location.state || {};
   console.log("Thông tin vé:", ticketId, quantity, ticketName, ticketPrice);
+
+  if (!localStorage.getItem("accessToken")) {
+    return <p>Bạn cần đăng nhập để truy cập trang này.</p>;
+  }
+
   // Tính tổng tiền
   const totalPrice = (ticketPrice || 0) * (quantity || 1);
 
