@@ -179,7 +179,7 @@ exports.logout = async (req, res) => {
 // 🔹 [GET] Xử lý đăng nhập Google OAuth
 exports.googleAuth = passport.authenticate("google", {
     scope: ["profile", "email"],
-    prompt: "consent",
+    prompt: "select_account",
     accessType: "offline"
 });
 
@@ -196,7 +196,7 @@ exports.googleCallback = (req, res, next) => {
       if (!existingUser) {
         existingUser = await User.create({
           email: user.email,
-          fullName: user.displayName,
+          name: user.displayName,
           googleId: user.id,
           avatar: user.photos[0].value,
           role: "admin",
@@ -216,8 +216,9 @@ exports.googleCallback = (req, res, next) => {
   
       // ✅ Gửi thêm name và role về frontend
       res.redirect(
-        `http://localhost:5713/admin?token=${accessToken}&name=${encodeURIComponent(existingUser.fullName)}&role=${existingUser.role}`
+        `http://localhost:5713/admin?token=${accessToken}&name=${encodeURIComponent(existingUser.name)}&role=${existingUser.role}&id=${existingUser._id}`
       );
+      
     })(req, res, next);
   };
 

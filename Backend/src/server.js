@@ -14,6 +14,7 @@ const ticketRoutes = require("./routes/ticket.routes");
 const ticketPurchasedRoutes = require("./routes/ticketPurchased.routes");
 const authRoutes = require("./routes/auth.routes");
 const StationRoutes = require("./routes/station.routes"); 
+const metroLineRoutes = require('./routes/line.routes');
 
 // Cấu hình passport
 require("./config/passportConfig");
@@ -58,6 +59,7 @@ async function startServer() {
     app.use("/ticketsPurchased", ticketPurchasedRoutes);
     app.use("/stations", StationRoutes); 
     app.use("/auth", authRoutes);
+    app.use('/lines', metroLineRoutes);
 
     // Cấu hình cổng cho server
     const PORT = process.env.PORT;
