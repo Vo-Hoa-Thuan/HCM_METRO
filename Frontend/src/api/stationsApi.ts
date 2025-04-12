@@ -24,7 +24,7 @@ export interface Station {
   updatedAt?: string; 
 }
 
-export const getAllStations = async (): Promise<Station[]> => {
+export const getAllStations = async () => {
     try {
       const response = await axios.get(`${API_URL}/get`);
       return response.data;

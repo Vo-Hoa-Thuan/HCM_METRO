@@ -45,16 +45,6 @@ const Login = () => {
   
     try {
       await login(values.phone, values.password);
-  
-      // Kiểm tra thông tin trang đích trong localStorage
-      const redirectData = localStorage.getItem("redirectAfterLogin");
-      if (redirectData) {
-        const { path, state } = JSON.parse(redirectData);
-        localStorage.removeItem("redirectAfterLogin");
-        navigate(path, { state }); 
-      } else {
-        navigate("/");
-      }
     } catch (error: any) {
       setGeneralError(error.message || "Đăng nhập thất bại. Vui lòng thử lại.");
     }
@@ -62,13 +52,21 @@ const Login = () => {
 
   useEffect(() => {
     if (user?.isAuthenticated) {
-      if (user.role === "admin" || user.role === "staff") {
-        navigate("/Admin");
+      const redirectData = localStorage.getItem("redirectAfterLogin");
+      if (redirectData) {
+        const { path, state } = JSON.parse(redirectData);
+        localStorage.removeItem("redirectAfterLogin");
+        navigate(path, { state });
       } else {
-        navigate("/");
+        if (user.role === "admin" || user.role === "staff") {
+          navigate("/Admin");
+        } else {
+          navigate("/");
+        }
       }
     }
   }, [user, navigate]);
+  
 
 
   const toggleShowPassword = () => setShowPassword(!showPassword);

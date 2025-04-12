@@ -12,14 +12,14 @@ export const AuthProvider = ({ children }) => {
     const token = queryParams.get("token");
     const name = queryParams.get("name");
     const role = queryParams.get("role");
-    const id = queryParams.get("id");
+    // const id = queryParams.get("id");
   
     if (token && name && role) {
       localStorage.setItem("accessToken", token);
       localStorage.setItem("name", decodeURIComponent(name));
       localStorage.setItem("role", role);
-      localStorage.setItem("userId", id); 
-      console.log("Id", id)
+      // localStorage.setItem("userId", id); 
+      // console.log("Id", id)
       console.log("role", role)
       console.log("name", decodeURIComponent(name))
       console.log("Id", token)
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
         name: decodeURIComponent(name),
         role,
         isAuthenticated: true,
-        id,
+        // id,
       });
   
 
@@ -103,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         console.log("🔥 Refresh Token mới:", data.refreshToken);
         console.log("🔥 Tên:", data.name);
         console.log("🔥 Id:", data.id);
+        console.log("🔥 role:", data.role);
 
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("role", data.role);

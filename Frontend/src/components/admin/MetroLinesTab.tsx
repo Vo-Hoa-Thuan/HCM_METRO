@@ -34,7 +34,9 @@ interface MetroLinesTabProps {
 }
 
 type MetroLine = {
+  alerts: any;
   id: string;
+  _id: string;
   name: string;
   color: string;
   stations: string[];
@@ -49,13 +51,6 @@ type MetroLine = {
   status: 'operational' | 'construction' | 'planned' | 'closed';
   openingDate?: Date;
   length?: number;
-  alerts?: {
-    type: 'delay' | 'closure' | 'maintenance' | 'info';
-    message: string;
-    startDate?: Date;
-    endDate?: Date;
-    active: boolean;
-  }[];
 };
 
 type Station = {
@@ -176,11 +171,12 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
   });
 
   // Filter lines based on search term
-  // const filteredLines = linesData?.lines?.filter(
-  //   (line: MetroLine) => 
-  //     line.name.toLowerCase().includes(searchTerm.toLowerCase())
-  // ) || [];
-  const filteredLines = linesData || [];
+  const filteredLines: MetroLine[] = (searchTerm ? linesData?.filter((line: MetroLine) =>
+    line.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : linesData) || [];
+  
+  
+  
 
 
   // Toggle expanded line

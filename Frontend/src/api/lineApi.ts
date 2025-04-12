@@ -18,21 +18,14 @@ export interface MetroLine {
   status: "operational" | "construction" | "planned" | "closed"; 
   openingDate: string;
   length: number;
-  alerts?: {
-    type: "delay" | "closure" | "maintenance" | "info"; 
-    message: string; 
-    startDate: string; 
-    endDate: string; 
-    active: boolean;
-  }[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-export const getAllLines = async (): Promise<MetroLine[]> => {
+export const getAllLines = async () => {
   try {
     const response = await axios.get(`${API_URL}/`);
-    return response.data;
+    return response.data || [];
   } catch (error) {
     console.error("Error fetching metro lines:", error);
     throw error;
