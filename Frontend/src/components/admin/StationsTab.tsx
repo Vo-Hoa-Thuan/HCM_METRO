@@ -21,7 +21,8 @@ import { motion } from "@/components/ui/motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Station, getAllStations, createStation, updateStation, deleteStation } from "@/api/stationsAPI";
+import { Station, getAllStations, createStation, updateStation, deleteStation } from "@/api/stationsApi";
+import { getAllLines} from "@/api/lineApi";
 import StationForm from "./StationForm";
 
 

@@ -23,7 +23,8 @@ import { motion } from "@/components/ui/motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllLines, createLine, updateLine, deleteLine, getAllStations } from "@/api/metroApi";
+import { getAllLines, createLine, updateLine, deleteLine} from "@/api/lineApi";
+import { getAllStations} from "@/api/stationsApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -100,6 +101,11 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
     queryFn: () => getAllLines()
   });
 
+  useEffect(() => {
+  console.log("linesData:", linesData);
+}, [linesData]);
+
+
   // Fetch stations for select options
   const { 
     data: stationsData 
@@ -170,10 +176,12 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
   });
 
   // Filter lines based on search term
-  const filteredLines = linesData?.lines?.filter(
-    (line: MetroLine) => 
-      line.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // const filteredLines = linesData?.lines?.filter(
+  //   (line: MetroLine) => 
+  //     line.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // ) || [];
+  const filteredLines = linesData || [];
+
 
   // Toggle expanded line
   const toggleExpandLine = (lineId: string) => {

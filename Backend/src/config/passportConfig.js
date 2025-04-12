@@ -43,15 +43,16 @@ passport.use(
     )
 );
 
-passport.serializeUser((user, done) => {
-    done(null, user);
-});
-
-passport.deserializeUser(async (user, done) => {
+passport.serializeUser((data, done) => {
+    done(null, data.user._id); // chỉ lưu _id vào session
+  });
+  
+  passport.deserializeUser(async (id, done) => {
     try {
-        const existingUser = await User.findById(user.user._id);
-        done(null, existingUser);
+      const user = await User.findById(id);
+      done(null, user);
     } catch (err) {
-        done(err, null);
+      done(err, null);
     }
-});
+  });
+  
