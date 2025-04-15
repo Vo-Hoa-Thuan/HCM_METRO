@@ -1,5 +1,5 @@
 
-import { useState, useEffect, Key } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MetroLine, getAllLines, createLine, updateLine, deleteLine} from "@/api/lineApi";
-import { Station ,getAllStations} from "@/api/stationsApi";
+import { Station, getAllStations} from "@/api/stationsApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -32,36 +32,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface MetroLinesTabProps {
   searchTerm: string;
 }
-
-
-// type MetroLine = {
-//   alerts: any;
-//   id: string;
-//   _id: string;
-//   name: string;
-//   color: string;
-//   stations: string[];
-//   operatingHours: {
-//     weekday: string;
-//     weekend: string;
-//   };
-//   frequency: {
-//     peakHours: string;
-//     offPeakHours: string;
-//   };
-//   status: 'operational' | 'construction' | 'planned' | 'closed';
-//   openingDate?: Date;
-//   length?: number;
-// };
-
-// type Station = {
-//   _id: Key;
-//   id: string;
-//   name: string;
-//   nameVi: string;
-//   isInterchange: boolean;
-//   lines: string[];
-// };
 
 
 const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
@@ -174,12 +144,11 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
   });
 
   // Filter lines based on search term
-  const filteredLines: MetroLine[] = (searchTerm ? linesData?.filter((line: MetroLine) =>
-    line.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ) : linesData) || [];
-  
-  
-  
+  // const filteredLines = linesData?.lines?.filter(
+  //   (line: MetroLine) => 
+  //     line.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // ) || [];
+  const filteredLines = linesData || [];
 
 
   // Toggle expanded line
@@ -191,29 +160,13 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
     }
   };
 
-  useEffect(() => {
-    console.log("stationsData:", stationsData);
-  }, [stationsData]);
-  
-
   // Get stations for a specific line
   const getStationsForLine = (lineId: string) => {
-    // Ưu tiên dùng dữ liệu từ linesData nếu có
-    const line = linesData.find(line => line._id === lineId);
-    
-    if (line?.stations?.length) {
-      return stationsData.filter(station =>
-        line.stations.includes(station._id.toString())
-      );
-    }
-  
-    // Fallback: dùng dữ liệu từ stationsData nếu không tìm thấy trong linesData
-    return stationsData.filter(station => 
+    if (!stationsData) return [];
+    return stationsData.filter((station: Station) => 
       station.lines.includes(lineId)
     );
   };
-  
-  
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

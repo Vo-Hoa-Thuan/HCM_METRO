@@ -327,6 +327,13 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
               onCancel={() => setIsCreateDialogOpen(false)}
               submitLabel="Tạo trạm"
             />
+            {/* Hiển thị dữ liệu formData */}
+    <div className="mt-6 p-4 border rounded bg-gray-50">
+      <h4 className="text-lg font-semibold mb-2">Dữ liệu nhập vào:</h4>
+      <pre className="text-sm bg-gray-100 p-2 rounded overflow-x-auto">
+        {JSON.stringify(formData, null, 2)}
+      </pre>
+    </div>
           </DialogContent>
         </Dialog>
       </div>

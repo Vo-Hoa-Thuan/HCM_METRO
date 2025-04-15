@@ -1,8 +1,6 @@
 const Station = require('../models/station.model');
 const MetroLine = require('../models/line.model');
-const { addStationToLine, removeStationFromLines, syncStationLines } = require('../utils/syncLineAndStations');
-
-
+const { addStationToLines,syncStationLines,removeStationFromLines } = require('../utils/syncLineAndStations');
 // Lấy danh sách tất cả các ga
 exports.getAllStations = async (req, res) => {
   try {
@@ -27,21 +25,20 @@ exports.getStationById = async (req, res) => {
 // Tạo mới 1 ga
 exports.createStation = async (req, res) => {
   try {
-    const newStation = new Station(req.body);
+    // Lấy dữ liệu từ request body
+    const stationData = req.body;
 
-    const savedStation = await newStation.save();
+    // Tạo mới ga và lưu vào cơ sở dữ liệu
+    const newStation = await Station.create(stationData);
 
-    if (req.body.lines && req.body.lines.length > 0) {
-      for (const lineId of req.body.lines) {
-        await addStationToLine(savedStation._id, lineId);
-      }
+    // Nếu có chọn lines, cập nhật danh sách stations trong các lines đó
+    if (stationData.lines && stationData.lines.length > 0) {
+      await addStationToLines(newStation._id, stationData.lines);
     }
 
-    console.log("Station được lưu:", savedStation);
-
-    res.status(201).json({ message: 'Station created successfully', station: savedStation });
+    res.status(201).json({ message: 'Tạo mới ga thành công', station: newStation });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating station', error: error.message });
+    res.status(400).json({ message: 'Lỗi khi tạo mới ga', error: error.message });
   }
 };
 
@@ -63,8 +60,13 @@ exports.updateStation = async (req, res) => {
       { new: true }
     );
 
-    // Đồng bộ hóa các tuyến Metro
-    await syncStationLines(currentStation.lines, req.body.lines || [], stationId);
+    // Đồng bộ hóa các tuyến Metro nếu danh sách lines thay đổi
+    if (req.body.lines) {
+      const oldLines = currentStation.lines || [];
+      const newLines = req.body.lines;
+
+      await syncStationLines(stationId, oldLines, newLines);
+    }
 
     res.status(200).json({ message: "Cập nhật thành công", station: updatedStation });
   } catch (error) {
@@ -79,7 +81,9 @@ exports.deleteStation = async (req, res) => {
     const stationId = req.params.id;
 
     // Xóa Station khỏi các MetroLine liên quan
-    await removeStationFromLines(stationId);
+    const lines = await MetroLine.find({ "stations.station": stationId });
+    const lineIds = lines.map(line => line._id);
+    await removeStationFromLines(stationId, lineIds);
 
     // Xóa Station khỏi cơ sở dữ liệu
     const deletedStation = await Station.findByIdAndDelete(stationId);
