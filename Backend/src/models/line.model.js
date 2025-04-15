@@ -24,6 +24,10 @@ const metroLineSchema = new mongoose.Schema({
     type: String,
     enum: ['operational', 'construction', 'planned', 'closed']
   },
+  stations: [{
+    station: { type: mongoose.Schema.Types.ObjectId, ref: 'Station' },
+    order: Number 
+  }],
   openingDate: String,
   length: Number,
   alerts: [alertSchema]

@@ -44,7 +44,7 @@ export const getAllStations = async (): Promise<Station[]> => {
     }
   };
   
-  export const createStation = async (station: Station): Promise<Station> => {
+  export const createStation = async (station: Station): Promise<Station>=> {
     try {
       const response = await axios.post(`${API_URL}/create`, station);
       return response.data;
@@ -64,7 +64,7 @@ export const getAllStations = async (): Promise<Station[]> => {
     }
   };
   
-  export const deleteStation = async (id: string): Promise<void> => {
+  export const deleteStation = async (id: string) => {
     try {
       await axios.delete(`${API_URL}/delete/${id}`);
     } catch (error) {

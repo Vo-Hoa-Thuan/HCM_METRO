@@ -23,8 +23,8 @@ import { motion } from "@/components/ui/motion";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllLines, createLine, updateLine, deleteLine} from "@/api/lineApi";
-import { getAllStations} from "@/api/stationsApi";
+import { MetroLine, getAllLines, createLine, updateLine, deleteLine} from "@/api/lineApi";
+import { Station, getAllStations} from "@/api/stationsApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -33,38 +33,6 @@ interface MetroLinesTabProps {
   searchTerm: string;
 }
 
-type MetroLine = {
-  id: string;
-  name: string;
-  color: string;
-  stations: string[];
-  operatingHours: {
-    weekday: string;
-    weekend: string;
-  };
-  frequency: {
-    peakHours: string;
-    offPeakHours: string;
-  };
-  status: 'operational' | 'construction' | 'planned' | 'closed';
-  openingDate?: Date;
-  length?: number;
-  alerts?: {
-    type: 'delay' | 'closure' | 'maintenance' | 'info';
-    message: string;
-    startDate?: Date;
-    endDate?: Date;
-    active: boolean;
-  }[];
-};
-
-type Station = {
-  id: string;
-  name: string;
-  nameVi: string;
-  isInterchange: boolean;
-  lines: string[];
-};
 
 const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
   const [expandedLine, setExpandedLine] = useState<string | null>(null);
@@ -137,7 +105,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
 
   // Update metro line mutation
   const updateLineMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateLine(id, data),
+    mutationFn: ({ id, data }: { id: string; data: MetroLine }) => updateLine(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['metroLines'] });
       setIsEditDialogOpen(false);
@@ -194,8 +162,8 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
 
   // Get stations for a specific line
   const getStationsForLine = (lineId: string) => {
-    if (!stationsData?.stations) return [];
-    return stationsData.stations.filter((station: Station) => 
+    if (!stationsData) return [];
+    return stationsData.filter((station: Station) => 
       station.lines.includes(lineId)
     );
   };
@@ -260,7 +228,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
     setFormData({
       name: line.name,
       color: line.color,
-      stations: [...line.stations],
+      stations: line.stations.map((station) => station.station), 
       operatingHours: { ...line.operatingHours },
       frequency: { ...line.frequency },
       status: line.status,
@@ -279,10 +247,9 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const lineData = {
-      id: `line-${Date.now()}`, // Generate a unique ID
       ...formData
     };
-    createLineMutation.mutate(lineData as any);
+    createLineMutation.mutate(lineData as MetroLine);
   };
 
   // Handle edit form submit
@@ -290,8 +257,8 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
     e.preventDefault();
     if (currentLine) {
       updateLineMutation.mutate({
-        id: currentLine.id,
-        data: formData
+        id: currentLine._id,
+        data: formData as MetroLine
       });
     }
   };
@@ -299,7 +266,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
   // Handle delete confirm
   const handleDeleteConfirm = () => {
     if (currentLine) {
-      deleteLineMutation.mutate(currentLine.id);
+      deleteLineMutation.mutate(currentLine._id);
     }
   };
 
@@ -380,16 +347,16 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                 <div className="space-y-2">
                   <Label>Trạm trên tuyến</Label>
                   <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                    {stationsData?.stations?.map((station: Station) => (
-                      <div key={station.id} className="flex items-center space-x-2">
+                    {stationsData?.map((station: Station) => (
+                      <div key={station._id} className="flex items-center space-x-2">
                         <input
                           type="checkbox"
-                          id={`station-${station.id}`}
-                          checked={(formData.stations || []).includes(station.id)}
-                          onChange={() => handleStationsChange(station.id)}
+                          id={`edit-station-${station._id}`}
+                          checked={(formData.stations || []).includes(station._id)} 
+                          onChange={() => handleStationsChange(station._id)}
                           className="rounded"
                         />
-                        <Label htmlFor={`station-${station.id}`} className="text-sm cursor-pointer">
+                        <Label htmlFor={`edit-station-${station._id}`} className="text-sm cursor-pointer">
                           {station.nameVi}
                         </Label>
                       </div>
@@ -500,7 +467,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
 
       {filteredLines.map((line: MetroLine, index: number) => (
         <motion.div
-          key={line.id}
+          key={line._id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: index * 0.1 }}
@@ -518,7 +485,9 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                   <CardTitle className="text-xl font-medium">
                     {line.name}
                   </CardTitle>
-                  <CardDescription>Tuyến metro {line.id}</CardDescription>
+                  <CardDescription className="text-sm text-muted-foreground">
+                    {line.status === "operational" ? "Đang hoạt động" : line.status}
+                  </CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -538,10 +507,10 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={() => toggleExpandLine(line.id)}
-                  className={expandedLine === line.id ? "bg-accent/10" : ""}
+                  onClick={() => toggleExpandLine(line._id)}
+                  className={expandedLine === line._id ? "bg-accent/10" : ""}
                 >
-                  <ChevronDown className={`h-4 w-4 transition-transform ${expandedLine === line.id ? "transform rotate-180" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform ${expandedLine === line._id ? "transform rotate-180" : ""}`} />
                 </Button>
               </div>
             </CardHeader>
@@ -597,7 +566,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
             </CardContent>
             
             {/* Expanded content */}
-            {expandedLine === line.id && (
+            {expandedLine === line._id && (
               <motion.div
                 initial={{ opacity: 0, y: 0 }} 
                 animate={{ opacity: 1, y: 0 }}
@@ -613,7 +582,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                   <div className="relative">
                     <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-accent/20"></div>
                     <div className="space-y-3 pl-6">
-                      {getStationsForLine(line.id).map((station: Station, idx: number) => (
+                      {getStationsForLine(line._id).map((station: Station, idx: number) => (
                         <div key={idx} className="flex items-center">
                           <div 
                             className="absolute left-2 w-2 h-2 rounded-full"
@@ -628,7 +597,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                         </div>
                       ))}
                       
-                      {getStationsForLine(line.id).length === 0 && (
+                      {getStationsForLine(line._id).length === 0 && (
                         <div className="text-sm text-muted-foreground">
                           Chưa có trạm nào trên tuyến này
                         </div>
@@ -655,8 +624,8 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                   <Calendar className="h-3 w-3 mr-1" />
                   Cập nhật: {new Date().toLocaleDateString('vi-VN')}
                 </div>
-                <Button size="sm" variant="ghost" onClick={() => toggleExpandLine(line.id)}>
-                  {expandedLine === line.id ? "Thu gọn" : "Mở rộng"}
+                <Button size="sm" variant="ghost" onClick={() => toggleExpandLine(line._id)}>
+                  {expandedLine === line._id ? "Thu gọn" : "Mở rộng"}
                 </Button>
               </div>
             </CardFooter>
@@ -729,16 +698,16 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
               <div className="space-y-2">
                 <Label>Trạm trên tuyến</Label>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                  {stationsData?.stations?.map((station: Station) => (
-                    <div key={station.id} className="flex items-center space-x-2">
+                  {stationsData?.map((station: Station) => (
+                    <div key={station._id} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        id={`edit-station-${station.id}`}
-                        checked={(formData.stations || []).includes(station.id)}
-                        onChange={() => handleStationsChange(station.id)}
+                        id={`edit-station-${station._id}`}
+                        checked={(formData.stations || []).includes(station._id)}
+                        onChange={() => handleStationsChange(station._id)}
                         className="rounded"
                       />
-                      <Label htmlFor={`edit-station-${station.id}`} className="text-sm cursor-pointer">
+                      <Label htmlFor={`edit-station-${station._id}`} className="text-sm cursor-pointer">
                         {station.nameVi}
                       </Label>
                     </div>
@@ -797,7 +766,7 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
                   <Label htmlFor="edit-status">Trạng thái</Label>
                   <Select
                     value={formData.status}
-                    onValueChange={(value) => handleSelectChange('status', value as any)}
+                    onValueChange={(value) => handleSelectChange('status', value )}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn trạng thái" />
@@ -828,7 +797,9 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => setIsEditDialogOpen(false)}
+                onClick={() => 
+                  {resetForm();
+                  setIsEditDialogOpen(false)}}
               >
                 Hủy
               </Button>
