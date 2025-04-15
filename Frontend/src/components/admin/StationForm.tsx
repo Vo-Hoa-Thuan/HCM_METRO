@@ -7,9 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+import { Station } from "@/api/stationsApi";
+
+
 
 interface StationFormProps {
-  formData: any;
+  formData: Station;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
   handleCheckboxChange: (name: string, checked: boolean) => void;
@@ -96,11 +99,11 @@ const StationForm: React.FC<StationFormProps> = ({
             {availableLines.map((line) => (
               <div key={line.id} className="flex items-center space-x-2">
                 <Checkbox
-                  id={`line-${line.id}`}
-                  checked={(formData.lines || []).includes(line.id)}
-                  onCheckedChange={(checked) => handleLineChange(line.id)}
+                  id={`line-${line._id}`}
+                  checked={(formData.lines || []).includes(line._id)}
+                  onCheckedChange={(checked) => handleLineChange(line._id)}
                 />
-                <Label htmlFor={`line-${line.id}`} className="text-sm cursor-pointer">
+                <Label htmlFor={`line-${line._id}`} className="text-sm cursor-pointer">
                   {line.name}
                 </Label>
               </div>
@@ -160,6 +163,22 @@ const StationForm: React.FC<StationFormProps> = ({
                 onCheckedChange={(checked) => handleCheckboxChange('isInterchange', !!checked)}
               />
               <Label htmlFor="isInterchange">Trạm chuyển tuyến</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isDepot"
+                checked={formData.isDepot || false}
+                onCheckedChange={(checked) => handleCheckboxChange('isDepot', !!checked)}
+              />
+              <Label htmlFor="isDepot">Trạm Depot</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isUnderground"
+                checked={formData.isUnderground || false}
+                onCheckedChange={(checked) => handleCheckboxChange('isUnderground', !!checked)}
+              />
+              <Label htmlFor="isUnderground">Trạm ngầm</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox

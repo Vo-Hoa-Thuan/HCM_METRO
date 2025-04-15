@@ -10,7 +10,7 @@ const StationSchema = new mongoose.Schema({
     required: true
   },
   coordinates: {
-    type: [Number], // [longitude, latitude]
+    type: [Number], 
     required: true,
     validate: {
       validator: (v) => v.length === 2,
@@ -21,10 +21,11 @@ const StationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  lines: {
-    type: [String],
-    default: []
-  },
+  lines: [
+    { type: mongoose.Schema.Types.ObjectId, ref: 'MetroLine' }
+  ]
+  
+  ,
   facilities: {
     type: [String],
     default: []

@@ -22,8 +22,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Station, getAllStations, createStation, updateStation, deleteStation } from "@/api/stationsApi";
-import { getAllLines} from "@/api/lineApi";
 import StationForm from "./StationForm";
+import { MetroLine, getAllLines } from "@/api/lineApi";
 
 
 interface StationsTabProps {
@@ -39,18 +39,20 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
   const [formData, setFormData] = useState({
     name: '',
     nameVi: '',
-    coordinates: [106.629664, 10.823099],
-    lines: [],
-    facilities: ['ticket_machine'],
-    isInterchange: false,
+    coordinates: [106.629664, 10.823099], 
     address: '',
-    status: 'operational',
+    lines: [], 
+    facilities: [], 
     dailyPassengers: 0,
+    isInterchange: false,
+    isDepot: false,
+    isUnderground: false,
+    status: 'operational',
     hasWifi: false,
     hasParking: false,
-    hasTicketMachine: true,
-    hasAccessibility: true,
-    hasBathroom: true
+    hasTicketMachine: false,
+    hasAccessibility: false,
+    hasBathroom: false,
   });
   
   const { toast } = useToast();
@@ -137,17 +139,13 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
       setExpandedStation(stationId);
     }
   };
-
   const filteredStations = stationsData?.filter(
     (station: Station) => 
       station.nameVi.toLowerCase().includes(searchTerm.toLowerCase()) ||
       station.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const getLineColor = (lineId: string) => {
-    const line = linesData?.lines?.find((l: any) => l.id === lineId);
-    return line?.color || "#999999";
-  };
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -155,7 +153,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     if (name.includes('.')) {
       const [parent, index] = name.split('.');
       const updatedArray = [...(formData[parent as keyof typeof formData] as Station[])];
-      updatedArray[Number(index)] = value;
+      updatedArray[(index)] = value;
       setFormData({ ...formData, [parent]: updatedArray });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -170,13 +168,13 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     setFormData({ ...formData, [name]: checked });
   };
 
-  const handleLineChange = (lineId: string) => {
+  const handleLineChange = (stationId: string) => {
     setFormData(prev => {
       const currentLines = [...prev.lines];
-      if (currentLines.includes(lineId)) {
-        return { ...prev, lines: currentLines.filter(id => id !== lineId) };
+      if (currentLines.includes(stationId)) {
+        return { ...prev, lines: currentLines.filter(id => id !== stationId) };
       } else {
-        return { ...prev, lines: [...currentLines, lineId] };
+        return { ...prev, lines: [...currentLines, stationId] };
       }
     });
   };
@@ -185,18 +183,20 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     setFormData({
       name: '',
       nameVi: '',
-      coordinates: [106.629664, 10.823099],
-      lines: [],
-      facilities: ['ticket_machine'],
-      isInterchange: false,
+      coordinates: [106.629664, 10.823099], 
       address: '',
-      status: 'operational',
+      lines: [], 
+      facilities: ['ticket_machine'], 
       dailyPassengers: 0,
+      isInterchange: false,
+      isDepot: false,
+      isUnderground: false,
+      status: 'operational',
       hasWifi: false,
       hasParking: false,
       hasTicketMachine: true,
       hasAccessibility: true,
-      hasBathroom: true
+      hasBathroom: true,
     });
   };
 
@@ -206,18 +206,20 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     setFormData({
       name: station.name,
       nameVi: station.nameVi,
-      coordinates: [...station.coordinates],
-      lines: [...station.lines],
-      facilities: [...station.facilities],
-      isInterchange: station.isInterchange,
+      coordinates: [...station.coordinates], 
       address: station.address || '',
-      status: station.status,
+      lines:  Array.isArray(station.lines) ? [...station.lines] : [], 
+      facilities: [...station.facilities], 
       dailyPassengers: station.dailyPassengers || 0,
-      hasWifi: station.hasWifi || false,
-      hasParking: station.hasParking || false,
-      hasTicketMachine: station.hasTicketMachine === undefined ? true : station.hasTicketMachine,
-      hasAccessibility: station.hasAccessibility === undefined ? true : station.hasAccessibility,
-      hasBathroom: station.hasBathroom === undefined ? true : station.hasBathroom
+      isInterchange: station.isInterchange,
+      isDepot: station.isDepot,
+      isUnderground: station.isUnderground,
+      status: station.status,
+      hasWifi: station.hasWifi,
+      hasParking: station.hasParking,
+      hasTicketMachine: station.hasTicketMachine,
+      hasAccessibility: station.hasAccessibility,
+      hasBathroom: station.hasBathroom,
     });
     setIsEditDialogOpen(true);
   };
@@ -239,10 +241,9 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
     if (formData.hasBathroom) facilities.push('bathroom');
     
     const stationData = {
-      _id: `station-${Date.now()}`,
       ...formData,
-      facilities,
-    };
+      };
+    console.log("Dữ liệu gửi lên Backend:", stationData);
     createStationMutation.mutate(stationData as Station);
   };
 
@@ -321,7 +322,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
               handleCheckboxChange={handleCheckboxChange}
               handleLineChange={handleLineChange}
               handleSubmit={handleCreateSubmit}
-              availableLines={linesData?.lines || []}
+              availableLines={linesData || []}
               isSubmitting={createStationMutation.isPending}
               onCancel={() => setIsCreateDialogOpen(false)}
               submitLabel="Tạo trạm"
@@ -351,6 +352,7 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="icon" onClick={() => handleEditClick(station)}>
+                    
                     <Edit className="h-4 w-4" />
                   </Button>
                   
@@ -375,20 +377,6 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
               </CardHeader>
               
               <CardContent className="pb-2">
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {station.lines.map((lineId: string) => (
-                    <Badge 
-                      key={lineId} 
-                      style={{ 
-                        backgroundColor: getLineColor(lineId),
-                        color: '#fff'
-                      }}
-                    >
-                      {lineId}
-                    </Badge>
-                  ))}
-                </div>
-                
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <div className="flex items-center">
                     <MapPin className="h-3 w-3 mr-1" />
@@ -396,12 +384,27 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
                       {station.coordinates[1].toFixed(3)}, {station.coordinates[0].toFixed(3)}
                     </span>
                   </div>
-                  
                   {station.isInterchange && (
                     <Badge variant="outline" className="text-xs">
                       Chuyển tuyến
                     </Badge>
                   )}
+                </div>
+
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {linesData &&
+                    (station.lines || []).map((_id: string) => {
+                      const line = linesData.find((line: MetroLine) => line._id === _id);
+                      return (
+                        <Badge
+                          key={_id}
+                          style={{ backgroundColor: line?.color || "#999999", color: "#fff" }}
+                          className="text-xs"
+                        >
+                          {line?.name || "Tuyến không xác định"}
+                        </Badge>
+                      );
+                    })}
                 </div>
               </CardContent>
               
@@ -519,9 +522,12 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
             handleCheckboxChange={handleCheckboxChange}
             handleLineChange={handleLineChange}
             handleSubmit={handleEditSubmit}
-            availableLines={linesData?.lines || []}
+            availableLines={linesData || []}
             isSubmitting={updateStationMutation.isPending}
-            onCancel={() => setIsEditDialogOpen(false)}
+            onCancel={() => {
+              resetForm();
+              setIsEditDialogOpen(false); 
+            }}
             submitLabel="Cập nhật"
           />
         </DialogContent>

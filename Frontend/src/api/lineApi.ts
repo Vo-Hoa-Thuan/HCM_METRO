@@ -6,7 +6,10 @@ export interface MetroLine {
   _id: string; 
   name: string; 
   color: string; 
-  stations: string[]; 
+  stations: {
+    station: string; // ID của ga (ObjectId tham chiếu đến `Station`)
+    order: number; // Thứ tự của ga trong tuyến
+  }[]; 
   operatingHours: {
     weekday: string; 
     weekend: string; 

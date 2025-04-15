@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Users, Train, TicketCheck, Clock, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { motion } from "@/components/ui/motion";
 import { metroLines, stations, tickets } from "@/utils/metroData";
+import { Station } from "@/api/stationsApi";
 
 const AdminDashboard = () => {
   const statsData = [
