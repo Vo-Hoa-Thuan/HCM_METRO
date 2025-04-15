@@ -34,7 +34,7 @@ export const getAllStations = async () => {
     }
   };
   
-  export const getStationById = async (id: string): Promise<Station> => {
+  export const getStationById = async (id: string) => {
     try {
       const response = await axios.get(`${API_URL}/get/${id}`);
       return response.data;
@@ -44,7 +44,7 @@ export const getAllStations = async () => {
     }
   };
   
-  export const createStation = async (station: Station): Promise<Station> => {
+  export const createStation = async (station: Station) => {
     try {
       const response = await axios.post(`${API_URL}/create`, station);
       return response.data;
@@ -54,7 +54,7 @@ export const getAllStations = async () => {
     }
   };
   
-  export const updateStation = async (id: string, station: Partial<Station>): Promise<Station> => {
+  export const updateStation = async (id: string, station: Partial<Station>) => {
     try {
       const response = await axios.put(`${API_URL}/update/${id}`, station);
       return response.data;

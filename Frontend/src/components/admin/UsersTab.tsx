@@ -9,12 +9,13 @@ import { motion } from "@/components/ui/motion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllUsers,getUserById, createUser, updateUser, deleteUser, exportUsers } from "@/api/userApi";
+import { getAllUsers,getUserById, createUser, updateUser, deleteUser, exportUsers, getNewUsersByTimeRange } from "@/api/userApi";
 import UserForm from "./UserForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UsersTabProps {
   searchTerm: string;
@@ -33,6 +34,7 @@ type SignupType = "phone" | "google";
 
 
 const UsersTab = ({ searchTerm }: UsersTabProps) => {
+  const { user, updateUserInfo } = useAuth();
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -99,7 +101,22 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       fetchUserData();
     }
   }, [isEditDialogOpen, currentUser]);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const data = await getNewUsersByTimeRange(selectedTime as any);
+        setUserCount(data.count || 0);
+        console.log("🧪 New user stats:", data); // <== LOG nè
+      } catch (error) {
+        console.error("Lỗi khi tải số lượng người dùng mới:", error);
+      }
+    };
   
+    fetchUserStats();
+  }, [selectedTime]);
+  
+
   
 
   const createUserMutation = useMutation({
@@ -273,8 +290,6 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
     }
   };
   
-  
-
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
@@ -285,8 +300,16 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
           delete updatedData.password;
         }
   
-        const response = await updateUser(currentUser._id, updatedData); 
+        const response = await updateUser(currentUser._id, updatedData);
         console.log("RESPONSE:", response);
+        if (user?.id === currentUser._id) {
+          updateUserInfo({
+            name: response.user.name,
+            role: response.user.role,
+            id: response.user._id,
+          });
+        }
+  
         toast({
           title: "Thành công",
           description: response.message || "Cập nhật người dùng thành công",
@@ -294,7 +317,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
         });
   
         setIsEditDialogOpen(false);
-        fetchUsers();  
+        fetchUsers();
       } catch (error) {
         toast({
           title: "Lỗi",
@@ -306,6 +329,7 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       }
     }
   };
+  
   
   
 

@@ -7,5 +7,6 @@ router.get('/:id', lineController.getMetroLineById);
 router.post('/', lineController.createMetroLine);
 router.put('/:id', lineController.updateMetroLine);
 router.delete('/:id', lineController.deleteMetroLine);
+router.get('/:id/stations', lineController.getStationsByLineId);
 
 module.exports = router;

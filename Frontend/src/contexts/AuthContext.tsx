@@ -12,17 +12,13 @@ export const AuthProvider = ({ children }) => {
     const token = queryParams.get("token");
     const name = queryParams.get("name");
     const role = queryParams.get("role");
-    // const id = queryParams.get("id");
+    const id = queryParams.get("userId");
   
-    if (token && name && role) {
+    if (token && name && role && id) {
       localStorage.setItem("accessToken", token);
       localStorage.setItem("name", decodeURIComponent(name));
       localStorage.setItem("role", role);
-      // localStorage.setItem("userId", id); 
-      // console.log("Id", id)
-      console.log("role", role)
-      console.log("name", decodeURIComponent(name))
-      console.log("Id", token)
+      localStorage.setItem("userId", id); 
   
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setUser({
@@ -30,7 +26,7 @@ export const AuthProvider = ({ children }) => {
         name: decodeURIComponent(name),
         role,
         isAuthenticated: true,
-        // id,
+        id,
       });
   
 
@@ -39,9 +35,14 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem("accessToken");
       const storedName = localStorage.getItem("name");
       const storedRole = localStorage.getItem("role");
-      const storedId = localStorage.getItem("id");
+      const storedId = localStorage.getItem("userId");
+      console.log("Token:", storedToken);
+      console.log("Name:", storedName);
+      console.log("Role:", storedRole);
+      console.log("User ID:", storedId);
+
   
-      if (storedToken && storedName && storedRole) {
+      if (storedToken && storedName && storedRole && storedId) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
         setUser({
           token: storedToken,
@@ -51,7 +52,11 @@ export const AuthProvider = ({ children }) => {
           isAuthenticated: true,
         });
       } else {
-        setUser({ isAuthenticated: false }); 
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("name");
+        localStorage.removeItem("role");
+        localStorage.removeItem("userId");
+        setUser(null); 
       }
     }
   
@@ -62,7 +67,6 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      // Gửi request mà không cần refreshToken từ localStorage
       const { data } = await axios.post("http://localhost:5000/auth/refresh", {}, { withCredentials: true });
   
       if (data?.accessToken) {
@@ -71,7 +75,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.id);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
-        // ✅ Cập nhật user
+
       setUser({
         token: data.accessToken,
         isAuthenticated: true,
@@ -84,7 +88,6 @@ export const AuthProvider = ({ children }) => {
       logout(); 
     }
   };
-  
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -126,13 +129,12 @@ export const AuthProvider = ({ children }) => {
   };
 
 
-  // 🔑 Đăng nhập bằng Google (chuyển hướng)
+
   const loginWithGoogle = () => {
     window.location.href = "http://localhost:5000/auth/google";
   };
 
 
- // 🚪 Đăng xuất
  const logout = async () => {
   try {
     await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
@@ -147,8 +149,22 @@ export const AuthProvider = ({ children }) => {
   setUser(null);
 };
 
+const updateUserInfo = ({ name, role, id }) => {
+  setUser((prev) => ({
+    ...prev,
+    name,
+    role,
+    id,
+  }));
+
+  localStorage.setItem("name", name);
+  localStorage.setItem("role", role);
+  localStorage.setItem("userId", id);
+};
+
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: user?.isAuthenticated || false, login, logout, loginWithGoogle, loading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: user?.isAuthenticated || false, login, logout, loginWithGoogle, loading, updateUserInfo }}>
       {children}
     </AuthContext.Provider>
   );

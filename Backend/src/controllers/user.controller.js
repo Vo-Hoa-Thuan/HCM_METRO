@@ -1,6 +1,8 @@
 const User = require('../models/user.model');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const moment = require('moment');
+
 require("dotenv").config();
 
 exports.registerUser = async (req, res) => {
@@ -117,19 +119,21 @@ exports.updateUser = async (req, res) => {
         const { name, email, phoneNumber, role, address, status } = req.body;
         const userExists = await User.exists({ _id: req.params.id });
         if (!userExists) return res.status(404).json({ error: "User không tồn tại" });
-        const updateData = {name, email, phoneNumber, role ,address,status};
+        const updateData = {name, email, phoneNumber,address,status};
 
+        if (role && req.user && req.user.role === "admin") {
+            updateData.role = role; 
+        }
+      
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
             updateData,
             { new: true, runValidators: true }
-        );
-        console.log("🔁 Dữ liệu cập nhật:", updateData);
-        console.log("✅ Kết quả trả về:", updatedUser);
-        
+        ); 
         res.status(200).json({
             message: "Cập nhật thành công",
             user: updatedUser,
+
         });
     } catch (error) {
         console.error("Lỗi khi cập nhật user:", error);
@@ -140,14 +144,55 @@ exports.updateUser = async (req, res) => {
 
 // 🔴 [DELETE] Xóa user
 exports.deleteUser = async (req, res) => {
+    console.log("User ID to delete:", req.params.id);
     try {
         const userExists = await User.exists({ _id: req.params.id });
         if (!userExists) return res.status(404).json({ error: "User không tồn tại" });
-
+  
         await User.findByIdAndDelete(req.params.id);
         res.json({ message: "User đã bị xóa" });
     } catch (error) {
         console.error("Lỗi khi xóa user:", error);
         res.status(500).json({ error: "Lỗi khi xóa user" });
+    }
+  };
+  
+  exports.getNewUsersByTime = async (req, res) => {
+    try {
+        const { range } = req.query;
+
+        let startDate;
+        console.log("Range nhận được:", range);
+
+        switch (range) {
+            case "day":
+                startDate = moment().startOf("day");
+                break;
+            case "week":
+                startDate = moment().startOf("week");
+                break;
+            case "month":
+                startDate = moment().startOf("month");
+                break;
+            case "year":
+            default:
+                startDate = moment().startOf("year");
+                break;
+        }
+
+        const newUsersCount = await User.countDocuments({
+            createdAt: { $gte: startDate.toDate() }
+        });
+
+        res.json({
+            timeRange: range,
+            count: newUsersCount
+        });
+        console.log("Start date dùng để query:", startDate.toDate());
+
+
+    } catch (error) {
+        console.error("Lỗi khi thống kê người dùng:", error);
+        res.status(500).json({ error: "Lỗi khi thống kê người dùng" });
     }
 };

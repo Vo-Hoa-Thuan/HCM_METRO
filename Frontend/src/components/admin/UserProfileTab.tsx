@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getUserById} from "@/api/userApi";
+import { getUserById, updateUser} from "@/api/userApi";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "@/components/ui/motion";
 import { 
@@ -42,8 +42,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
+type Status = "active" | "inactive" | "suspended";
+
 const UserProfileTab = () => {
-  const { user } = useAuth();
+  const { user, updateUserInfo } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
@@ -60,6 +62,7 @@ const UserProfileTab = () => {
     avatar: "",
     role: "",
     joinDate: "",
+    status: 'active' as Status,
   });
   console.log("User context:", user); 
 
@@ -78,6 +81,7 @@ useEffect(() => {
         address: data.address,
         avatar: data.avatar || "https://github.com/shadcn.png",
         role: data.role,
+        status: data.status,
         joinDate: data.createdAt
           ? new Date(data.createdAt).toLocaleString("vi-VN", {
               dateStyle: "medium",
@@ -101,14 +105,59 @@ useEffect(() => {
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     setIsEditing(false);
-    toast({
-      title: "Đã lưu thành công",
-      description: "Thông tin hồ sơ của bạn đã được cập nhật",
-      duration: 3000,
-    });
+    try {
+      await updateUser(user.id, {
+        name: profileData.name,
+        email: profileData.email,
+        phoneNumber: profileData.phone,
+        address: profileData.address,
+        avatar: profileData.avatar,
+        status: profileData.status,
+      });
+  
+      // ✅ Cập nhật lại context
+      updateUserInfo({
+        name: profileData.name,
+        id: user.id,
+        role: user.role,
+        status: user.status
+      });
+ 
+      localStorage.setItem("name", profileData.name);
+      localStorage.setItem("email", profileData.email);
+      localStorage.setItem("phoneNumber", profileData.phone);
+      localStorage.setItem("address", profileData.address);
+      localStorage.setItem("avatar", profileData.avatar);
+  
+      setProfileData((prevUser) => ({
+        ...prevUser,
+        name: profileData.name,
+        email: profileData.email,
+        phoneNumber: profileData.phone,
+        address: profileData.address,
+        avatar: profileData.avatar,
+      }));
+  
+      toast({
+        title: "Đã lưu thành công",
+        description: "Thông tin hồ sơ của bạn đã được cập nhật",
+        duration: 3000,
+        className: "bg-success text-white",
+      });
+    } catch (error: any) {
+      console.error("❌ Lỗi khi cập nhật hồ sơ:", error);
+      toast({
+        variant: "destructive",
+        title: "Cập nhật thất bại",
+        description: error.message || "Đã có lỗi xảy ra",
+      });
+    }
   };
+  
+  
+  
   
   const handleSaveSettings = () => {
     toast({
@@ -152,8 +201,15 @@ useEffect(() => {
                   <Badge variant="outline" className="bg-white/50 backdrop-blur-sm">
                     <Calendar className="h-3 w-3 mr-1" /> Tham gia: {profileData.joinDate}
                   </Badge>
-                  <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
-                    <CheckCircle className="h-3 w-3 mr-1" /> Đang hoạt động
+                  <Badge 
+                    className={`mt-1 text-white
+                      ${profileData.status === 'active' ? 'bg-active' : ''}
+                      ${profileData.status=== 'inactive' ? 'bg-inactive' : ''}
+                      ${profileData.status=== 'suspended' ? 'bg-block' : ''}
+                    `}
+                  >
+                    {profileData.status === 'active' ? 'Đang hoạt động' : 
+                     profileData.status === 'inactive' ? 'Không hoạt động' : 'Đã khóa'}
                   </Badge>
                 </div>
               </div>
@@ -224,7 +280,7 @@ useEffect(() => {
                       <Input
                         id="name"
                         name="name"
-                        value={profileData.name}
+                        value={profileData.name ?? ""}
                         onChange={handleInputChange}
                         className="pl-10"
                         disabled={!isEditing}
@@ -238,7 +294,7 @@ useEffect(() => {
                       <Input
                         id="email"
                         name="email"
-                        value={profileData.email}
+                        value={profileData.email ?? ""}
                         onChange={handleInputChange}
                         className="pl-10"
                         disabled={!isEditing}
@@ -255,7 +311,7 @@ useEffect(() => {
                       <Input
                         id="phone"
                         name="phone"
-                        value={profileData.phone}
+                        value={profileData.phone ?? ""}
                         onChange={handleInputChange}
                         className="pl-10"
                         disabled={!isEditing}
@@ -268,7 +324,7 @@ useEffect(() => {
                       <Shield className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="role"
-                        value={profileData.role}
+                        value={profileData.role ?? ""}
                         className="pl-10"
                         disabled
                       />
@@ -283,7 +339,7 @@ useEffect(() => {
                     <Textarea
                       id="address"
                       name="address"
-                      value={profileData.address}
+                      value={profileData.address ?? ""}
                       onChange={handleInputChange}
                       className="min-h-[80px] pl-10"
                       disabled={!isEditing}
@@ -628,3 +684,7 @@ useEffect(() => {
 };
 
 export default UserProfileTab;
+function setUser(arg0: (prevUser: any) => any) {
+  throw new Error("Function not implemented.");
+}
+

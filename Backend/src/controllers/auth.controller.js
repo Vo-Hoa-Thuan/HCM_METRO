@@ -11,13 +11,13 @@ const generateTokens = (user) => {
         { userId: user._id, phoneNumber: user.phoneNumber,email: user.email,
             role: user.role, },
         process.env.JWT_SECRET,
-        { expiresIn: "10s" }
+        { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
         { userId: user._id },
         process.env.REFRESH_SECRET,
-        { expiresIn: "10s" }
+        { expiresIn: "15m" }
     );
 
     return { accessToken, refreshToken };
@@ -102,7 +102,6 @@ exports.refreshToken = async (req, res) => {
 
         console.log("🔍 Received JWT:", oldRefreshToken);
 
-        // Xác minh Refresh Token
         let decoded;
         try {
             decoded = jwt.verify(oldRefreshToken, process.env.REFRESH_SECRET);
@@ -124,27 +123,22 @@ exports.refreshToken = async (req, res) => {
             return res.status(403).json({ message: "Refresh Token không hợp lệ!" });
         }
 
-        // Tạo Access Token mới
         const newAccessToken = jwt.sign(
             { userId: user._id, phoneNumber: user.phoneNumber },
             process.env.JWT_SECRET,
-            { expiresIn: "10s" }
+            { expiresIn: "15m" }
         );
 
-        // 🔄 **Cấp Refresh Token mới** (không dùng lại token cũ)
         const newRefreshToken = jwt.sign(
             { userId: user._id },
             process.env.REFRESH_SECRET,
-            { expiresIn: "10s" }
+            { expiresIn: "15m"}
         );
 
-        // 📝 **Cập nhật refreshToken trong database**
         await User.updateOne({ _id: user._id }, { refreshToken: newRefreshToken });
 
         console.log("🎉 Cấp Access Token mới:", newAccessToken);
         console.log("🔄 Cấp Refresh Token mới:", newRefreshToken);
-
-        // ✅ **Gửi lại Refresh Token mới qua cookie**
         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -159,16 +153,12 @@ exports.refreshToken = async (req, res) => {
     }
 };
 
-// 🔹 [POST] Đăng xuất
+
 exports.logout = async (req, res) => {
     try {
         const { refreshToken } = req.cookies;
         if (!refreshToken) return res.status(400).json({ message: "Không có Refresh Token!" });
-
-        // Tìm user & xóa refreshToken
         await User.updateOne({ refreshToken }, { $unset: { refreshToken: "" } });
-
-        // Xóa cookie
         res.clearCookie("refreshToken");
         res.json({ message: "Đăng xuất thành công!" });
     } catch (error) {
@@ -176,7 +166,7 @@ exports.logout = async (req, res) => {
     }
 };
 
-// 🔹 [GET] Xử lý đăng nhập Google OAuth
+
 exports.googleAuth = passport.authenticate("google", {
     scope: ["profile", "email"],
     prompt: "select_account",
@@ -195,8 +185,9 @@ exports.googleCallback = (req, res, next) => {
   
       if (!existingUser) {
         existingUser = await User.create({
+          id: user._id,
           email: user.email,
-          name: user.displayName,
+          name: user.name,
           googleId: user.id,
           avatar: user.photos[0].value,
           role: "admin",
@@ -213,10 +204,8 @@ exports.googleCallback = (req, res, next) => {
       });
   
       console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
-  
-      // ✅ Gửi thêm name và role về frontend
       res.redirect(
-        `http://localhost:5713/admin?token=${accessToken}&name=${encodeURIComponent(existingUser.name)}&role=${existingUser.role}&id=${existingUser._id}`
+        `http://localhost:5713/Admin?token=${accessToken}&name=${encodeURIComponent(existingUser.name)}&role=${existingUser.role}&id=${existingUser._id}`
       );
       
     })(req, res, next);
@@ -274,6 +263,16 @@ exports.googleCallback = (req, res, next) => {
         data: null,
         message: "Lỗi server khi lấy phiên đăng nhập!"
       });
+    }
+  };
+  
+  exports.getMe = (req, res) => {
+    try {
+      res.status(200).json({
+        user: req.user
+      });
+    } catch (err) {
+      res.status(500).json({ message: "Lỗi server!" });
     }
   };
   

@@ -1,4 +1,5 @@
 const Station = require('../models/station.model');
+const MetroLine = require('../models/line.model');
 
 // Lấy danh sách tất cả các ga
 exports.getAllStations = async (req, res) => {
@@ -58,5 +59,26 @@ exports.deleteStation = async (req, res) => {
     res.status(200).json({ message: 'Đã xóa ga', station: deletedStation });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi khi xóa ga', error });
+  }
+};
+
+exports.getStationsByLineId = async (req, res) => {
+  try {
+    const line = await MetroLine.findById(req.params.id);
+
+    if (!line) {
+      return res.status(404).json({ message: 'Line not found' });
+    }
+
+    const stations = await Station.find({ name: { $in: line.stations } });
+
+    res.json({
+      lineName: line.name,
+      stationCount: stations.length,
+      stations
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
   }
 };

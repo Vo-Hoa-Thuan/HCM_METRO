@@ -188,13 +188,23 @@ const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {
     }
   };
 
+  useEffect(() => {
+    console.log("stationsData:", stationsData);
+  }, [stationsData]);
+  
+
   // Get stations for a specific line
   const getStationsForLine = (lineId: string) => {
-    if (!stationsData?.stations) return [];
-    return stationsData.stations.filter((station: Station) => 
-      station.lines.includes(lineId)
+    const line = linesData.find(line => line._id === lineId);
+    if (!line || !line.stations) return [];
+  
+    return stationsData.filter(station =>
+      line.stations.some(
+        (stationId: string) => stationId.toString() === station._id.toString()
+      )
     );
   };
+  
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
