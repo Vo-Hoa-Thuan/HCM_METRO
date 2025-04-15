@@ -164,7 +164,7 @@ export const getNewUsersByTimeRange = async (range: 'day' | 'week' | 'month' | '
     }
 
     const response = await api.get(`/users/new-users/stats?range=${range}`);
-    return response.data; // { range: 'day', count: 5 }
+    return response.data;
   } catch (error) {
     console.error('Failed to get new user stats:', error);
     throw new Error(error.response?.data?.message || 'Unknown error');

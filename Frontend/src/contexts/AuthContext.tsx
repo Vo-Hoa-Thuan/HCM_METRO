@@ -8,17 +8,27 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
+    localStorage.clear();
+    const url = new URL(window.location.href);
+    const queryParams = url.searchParams;
+
     const token = queryParams.get("token");
     const name = queryParams.get("name");
     const role = queryParams.get("role");
-    const id = queryParams.get("userId");
+    const id = queryParams.get("id"); 
+
   
     if (token && name && role && id) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("name");
+      localStorage.removeItem("role");
+      localStorage.removeItem("userId");
+
       localStorage.setItem("accessToken", token);
       localStorage.setItem("name", decodeURIComponent(name));
       localStorage.setItem("role", role);
       localStorage.setItem("userId", id); 
+
   
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setUser({
@@ -30,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       });
   
 
-      window.history.replaceState({}, document.title, "/");
+      window.history.replaceState({}, document.title, "/Admin");
     } else {
       const storedToken = localStorage.getItem("accessToken");
       const storedName = localStorage.getItem("name");

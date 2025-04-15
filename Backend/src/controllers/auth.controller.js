@@ -175,40 +175,43 @@ exports.googleAuth = passport.authenticate("google", {
 
 // 🔹 [GET] Xử lý callback từ Google OAuth
 exports.googleCallback = (req, res, next) => {
-    passport.authenticate("google", { session: false }, async (err, user) => {
-      if (err || !user) {
-        console.error("Lỗi khi xác thực Google:", err);
-        return res.redirect("/login?error=google_auth_failed");
-      }
+  passport.authenticate("google", { session: false }, async (err, result, info) => {
+    if (err || !result) {
+      console.error("Lỗi khi xác thực Google:", err);
+      return res.redirect("/login?error=google_auth_failed");
+    }
   
-      let existingUser = await User.findOne({ email: user.email });
+    const { user, token } = result;
   
-      if (!existingUser) {
-        existingUser = await User.create({
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          googleId: user.id,
-          avatar: user.photos[0].value,
-          role: "admin",
-          signupType: "google",
-        });
-      }
+    let existingUser = await User.findOne({ email: user.email });
   
-      const { accessToken, refreshToken } = generateTokens(existingUser);
-  
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Lax"
+    if (!existingUser) {
+      existingUser = await User.create({
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        googleId: user.googleId, // lưu đúng cái googleId đã tạo
+        avatar: user.avatar || "", // vì user không có `.photos` như profile
+        role: "admin",
+        signupType: "google",
       });
+    }
   
-      console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
-      res.redirect(
-        `http://localhost:5713/Admin?token=${accessToken}&name=${encodeURIComponent(existingUser.name)}&role=${existingUser.role}&id=${existingUser._id}`
-      );
-      
-    })(req, res, next);
+    const { accessToken, refreshToken } = generateTokens(existingUser);
+  
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax"
+    });
+  
+    console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
+  
+    res.redirect(
+      `http://localhost:5713/Admin?token=${accessToken}&name=${encodeURIComponent(existingUser.name)}&role=${existingUser.role}&id=${existingUser._id}`
+    );
+  })(req, res, next);
+  
   };
 
   exports.getUserSessions = async (req, res) => {
