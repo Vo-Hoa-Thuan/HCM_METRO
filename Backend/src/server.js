@@ -15,29 +15,27 @@ const ticketPurchasedRoutes = require("./routes/ticketPurchased.routes");
 const authRoutes = require("./routes/auth.routes");
 const StationRoutes = require("./routes/station.routes"); 
 const metroLineRoutes = require('./routes/line.routes');
+const feedbackRoutes = require('./routes/feedback.routes');
 
-// Cấu hình passport
 require("./config/passportConfig");
 
 const app = express();
 app.use(express.json());
 
-// Sử dụng cookie-parser để đọc cookies từ request
 app.use(cookieParser());
 
-// CORS - Cấu hình để cho phép ứng dụng frontend kết nối với backend
+
 app.use(
   cors({
-    origin: process.env.LOCALHOST, // Địa chỉ frontend của bạn
+    origin: process.env.LOCALHOST,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-// Cấu hình session để duy trì trạng thái đăng nhập
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-session-secret", // Mã bảo mật cho session
+    secret: process.env.SESSION_SECRET || "your-session-secret",
     resave: false,
     saveUninitialized: true,
   })
@@ -53,15 +51,13 @@ async function startServer() {
     await connectDB();
     console.log("✅ Kết nối MongoDB thành công");
 
-    // Sử dụng các route cho API
     app.use("/users", userRoutes);
     app.use("/tickets", ticketRoutes);
     app.use("/ticketsPurchased", ticketPurchasedRoutes);
     app.use("/stations", StationRoutes); 
     app.use("/auth", authRoutes);
     app.use('/lines', metroLineRoutes);
-
-    // Cấu hình cổng cho server
+    app.use('/feedbacks', feedbackRoutes);
     const PORT = process.env.PORT;
     app.listen(PORT, () => {
       console.log(`🚀 Server chạy trên cổng ${PORT}`);
@@ -71,5 +67,4 @@ async function startServer() {
   }
 }
 
-// Khởi động server
 startServer();

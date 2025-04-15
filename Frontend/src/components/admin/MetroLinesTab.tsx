@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MetroLine, getAllLines, createLine, updateLine, deleteLine} from "@/api/lineApi";
-import { Station, getAllStations} from "@/api/stationsApi";
+import { Station ,getAllStations} from "@/api/stationsApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -34,34 +34,34 @@ interface MetroLinesTabProps {
 }
 
 
-type MetroLine = {
-  alerts: any;
-  id: string;
-  _id: string;
-  name: string;
-  color: string;
-  stations: string[];
-  operatingHours: {
-    weekday: string;
-    weekend: string;
-  };
-  frequency: {
-    peakHours: string;
-    offPeakHours: string;
-  };
-  status: 'operational' | 'construction' | 'planned' | 'closed';
-  openingDate?: Date;
-  length?: number;
-};
+// type MetroLine = {
+//   alerts: any;
+//   id: string;
+//   _id: string;
+//   name: string;
+//   color: string;
+//   stations: string[];
+//   operatingHours: {
+//     weekday: string;
+//     weekend: string;
+//   };
+//   frequency: {
+//     peakHours: string;
+//     offPeakHours: string;
+//   };
+//   status: 'operational' | 'construction' | 'planned' | 'closed';
+//   openingDate?: Date;
+//   length?: number;
+// };
 
-type Station = {
-  _id: Key;
-  id: string;
-  name: string;
-  nameVi: string;
-  isInterchange: boolean;
-  lines: string[];
-};
+// type Station = {
+//   _id: Key;
+//   id: string;
+//   name: string;
+//   nameVi: string;
+//   isInterchange: boolean;
+//   lines: string[];
+// };
 
 
 const MetroLinesTab = ({ searchTerm }: MetroLinesTabProps) => {

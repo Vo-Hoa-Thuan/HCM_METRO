@@ -1,13 +1,10 @@
 
-const Feedback = require('../models/Feedback');
+const Feedback = require('../models/feedback.model');
 
-// Get all feedback with optional filtering
 exports.getAllFeedback = async (req, res) => {
   try {
     const { page = 1, limit = 10, source, status, search, unanswered } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    // Build query based on filters
     const query = {};
     
     if (source && source !== 'all') {

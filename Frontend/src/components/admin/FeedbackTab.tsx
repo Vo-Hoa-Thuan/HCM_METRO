@@ -46,7 +46,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Feedback, FeedbackStats, getAllFeedback, getFeedbackStats, updateFeedback, deleteFeedback } from '@/api/metroApi';
+import { Feedback, FeedbackStats, getAllFeedback, getFeedbackStats, updateFeedback, deleteFeedback } from '@/api/feedbackApi';
 import { 
   MoreHorizontal, 
   Star, 
@@ -194,16 +194,19 @@ const FeedbackTab = () => {
     });
   };
 
-  // Reset form when selected feedback changes
   useEffect(() => {
     if (selectedFeedback) {
+      // Kiểm tra xem giá trị status có hợp lệ không
+      const validStatuses = ['new', 'reviewed', 'resolved', 'archived'];
+      const status = validStatuses.includes(selectedFeedback.status) ? selectedFeedback.status : 'new';
+  
       form.reset({
-        status: selectedFeedback.status || 'new',
+        status: status as 'new' | 'reviewed' | 'resolved' | 'archived', // Ép kiểu tại đây
         response: selectedFeedback.response || '',
       });
     }
   }, [selectedFeedback, form]);
-
+  
   // Feedback list content
   const renderFeedbackList = () => {
     const feedback = feedbackData?.feedback || [];
@@ -367,16 +370,20 @@ const FeedbackTab = () => {
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
+                  <PaginationPrevious
+                    onClick={() => {
+                      if (currentPage > 1) {
+                        setCurrentPage(prev => Math.max(prev - 1, 1));
+                      }
+                    }}
+                    className={currentPage === 1 ? "cursor-not-allowed opacity-50" : ""}
                   />
                 </PaginationItem>
                 {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                   const pageNumber = i + 1;
                   return (
                     <PaginationItem key={pageNumber}>
-                      <PaginationLink 
+                      <PaginationLink
                         isActive={currentPage === pageNumber}
                         onClick={() => setCurrentPage(pageNumber)}
                       >
@@ -386,13 +393,18 @@ const FeedbackTab = () => {
                   );
                 })}
                 <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
+                  <PaginationNext
+                    onClick={() => {
+                      if (currentPage < totalPages) {
+                        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                      }
+                    }}
+                    className={currentPage === totalPages ? "cursor-not-allowed opacity-50" : ""}
                   />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
+
           </div>
         )}
       </>

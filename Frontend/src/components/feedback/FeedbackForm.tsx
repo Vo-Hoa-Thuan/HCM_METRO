@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { submitFeedback } from '@/api/metroApi';
+import { submitFeedback } from '@/api/feedbackApi';
 
 type FeedbackFormProps = {
   onClose?: () => void;
   source?: string;
 };
 
-const FeedbackForm = ({ onClose, source = 'app' }: FeedbackFormProps) => {
+const defaultSource = typeof window !== 'undefined' ? 'website' : 'app';
+
+
+const FeedbackForm = ({ onClose, source = defaultSource }: FeedbackFormProps) => {
   const [rating, setRating] = useState<number>(0);
   const [feedback, setFeedback] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);

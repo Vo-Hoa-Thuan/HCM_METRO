@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.clear();
+
     const url = new URL(window.location.href);
     const queryParams = url.searchParams;
 
@@ -19,11 +19,6 @@ export const AuthProvider = ({ children }) => {
 
   
     if (token && name && role && id) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("name");
-      localStorage.removeItem("role");
-      localStorage.removeItem("userId");
-
       localStorage.setItem("accessToken", token);
       localStorage.setItem("name", decodeURIComponent(name));
       localStorage.setItem("role", role);
