@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { submitFeedback } from '@/api/feedbackApi';
+import { getUserById} from "@/api/userApi";
+
 
 type FeedbackFormProps = {
   onClose?: () => void;
@@ -20,6 +22,21 @@ const FeedbackForm = ({ onClose, source = defaultSource }: FeedbackFormProps) =>
   const [feedback, setFeedback] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        const userData = await getUserById(userId);
+        setUser(userData);
+      }
+    };
+  
+    fetchUser();
+  }, []);
+  
 
   const handleRatingClick = (value: number) => {
     setRating(value);
@@ -44,12 +61,15 @@ const FeedbackForm = ({ onClose, source = defaultSource }: FeedbackFormProps) =>
       await submitFeedback({
         rating,
         comment: feedback,
-        source
+        source,
+        userId: user?.id,
+        userName: user?.name || "Ẩn danh",
       });
       
       toast({
         title: "Cảm ơn bạn đã gửi đánh giá!",
         description: "Phản hồi của bạn giúp chúng tôi cải thiện dịch vụ tốt hơn.",
+        className: "bg-success text-white",
       });
       
       // Reset form
@@ -124,5 +144,6 @@ const FeedbackForm = ({ onClose, source = defaultSource }: FeedbackFormProps) =>
     </Card>
   );
 };
+
 
 export default FeedbackForm;

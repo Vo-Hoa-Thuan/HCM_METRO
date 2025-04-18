@@ -58,11 +58,11 @@ const Login = () => {
         localStorage.removeItem("redirectAfterLogin");
         navigate(path, { state });
       } else {
-        if (user.role === "admin" || user.role === "staff") {
+        if (user?.isAuthenticated && (user.role === "admin" || user.role === "staff")) {
           navigate("/Admin");
-        } else {
+        } else if (user?.isAuthenticated) {
           navigate("/");
-        }
+        }        
       }
     }
   }, [user, navigate]);

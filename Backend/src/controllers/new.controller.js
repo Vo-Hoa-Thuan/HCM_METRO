@@ -2,26 +2,32 @@
 const News = require('../models/new.model');
 
 // Get all news
+// Get all news
 exports.getAllNews = async (req, res) => {
   try {
-    const { category, limit = 10, page = 1, isPublished = true } = req.query;
-    const query = { isPublished: isPublished === 'true' };
-    
-    // Filter by category if provided
+    const { category, limit = 10, page = 1, isPublished } = req.query;
+
+    const query = {};
+
+    // Nếu có truyền isPublished, lọc theo true/false (string sang boolean)
+    if (typeof isPublished !== 'undefined') {
+      query.isPublished = isPublished === 'true';
+    }
+
+    // Nếu có truyền category, lọc theo category
     if (category) {
       query.category = category;
     }
-    
-    // Pagination
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
+
     const news = await News.find(query)
       .sort({ publishedDate: -1 })
       .skip(skip)
       .limit(parseInt(limit));
-    
+
     const total = await News.countDocuments(query);
-    
+
     res.status(200).json({
       news,
       pagination: {
@@ -36,6 +42,7 @@ exports.getAllNews = async (req, res) => {
     res.status(500).json({ message: 'Server error while fetching news' });
   }
 };
+
 
 // Get news by ID
 exports.getNewsById = async (req, res) => {

@@ -1,15 +1,17 @@
 import axios from "axios";
+import { Key } from "readline";
 
 const API_URL = "http://localhost:5000/lines"; 
 
 export interface MetroLine {
+  id: Key;
   _id: string; 
   name: string; 
   color: string; 
-  stations: {
-    station: string; // ID của ga (ObjectId tham chiếu đến `Station`)
-    order: number; // Thứ tự của ga trong tuyến
-  }[]; 
+  stations: Array<{
+    station: string; // ID của station
+    order: number;   // Thứ tự trong tuyến
+  }>;
   operatingHours: {
     weekday: string; 
     weekend: string; 

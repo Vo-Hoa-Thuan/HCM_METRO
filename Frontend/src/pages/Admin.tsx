@@ -8,6 +8,8 @@ import TicketsTab from "@/components/admin/TicketsTab";
 import UsersTab from "@/components/admin/UsersTab";
 import UserProfileTab from "@/components/admin/UserProfileTab";
 import SystemSettingsTab from "@/components/admin/SystemSettingsTab";
+import NewsTab from "@/components/admin/NewsTab";
+import ProgressTab from "@/components/admin/ProgressTab";
 import FeedbackTab from "@/components/admin/FeedbackTab";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import SearchBar from "@/components/admin/SearchBar";
@@ -28,7 +30,9 @@ import {
   MapPin,
   UserCog,
   Cog,
-  MessageSquare
+  MessageSquare,
+  Newspaper,
+  BarChart2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { 
@@ -273,6 +277,14 @@ const Admin = () => {
                 <MessageSquare className="h-4 w-4" />
                 <span>Phản hồi</span>
               </TabsTrigger>
+              <TabsTrigger value="news" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <Newspaper className="h-4 w-4" />
+                <span>Tin tức</span>
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
+                <BarChart2 className="h-4 w-4" />
+                <span>Tiến trình</span>
+              </TabsTrigger>
               <TabsTrigger value="profile" className="data-[state=active]:bg-white data-[state=active]:shadow-sm flex items-center gap-2">
                 <UserCog className="h-4 w-4" />
                 <span>Hồ sơ</span>
@@ -314,6 +326,14 @@ const Admin = () => {
 
           <TabsContent value="profile" className="bg-transparent">
             <UserProfileTab />
+          </TabsContent>
+          
+          <TabsContent value="news" className="bg-transparent">
+            <NewsTab />
+          </TabsContent>
+
+          <TabsContent value="progress" className="bg-transparent">
+            <ProgressTab />
           </TabsContent>
 
           <TabsContent value="settings" className="bg-transparent">

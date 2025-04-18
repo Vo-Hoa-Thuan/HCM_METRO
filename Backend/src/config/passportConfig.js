@@ -21,6 +21,7 @@ passport.use(
                         name: profile.displayName,
                         email: profile.emails?.[0]?.value || null,
                         verified: true,
+                        signupType: "google", 
                     });
 
                     await user.save();
@@ -30,7 +31,7 @@ passport.use(
 
                 // 🔹 Tạo token JWT
                 const token = jwt.sign(
-                    { userId: user._id }, 
+                    { userId: user._id, role: user.role }, 
                     process.env.JWT_SECRET, 
                     { expiresIn: "7d" }
                 );

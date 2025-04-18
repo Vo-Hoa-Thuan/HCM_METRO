@@ -79,13 +79,11 @@ const Register = () => {
       }
   
       alert("Đăng ký thành công!");
-      navigate("/login"); // Điều hướng đến trang đăng nhập sau khi đăng ký thành công
+      navigate("/login"); 
     } catch (error: any) {
       setGeneralError(error.message || "Lỗi không xác định");
     }
   };
-
-  
 
   const handleGoogleLogin = async () => {
     window.location.href = "http://localhost:5000/auth/google?prompt=select_account&access_type=offline";

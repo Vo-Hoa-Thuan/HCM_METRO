@@ -3,6 +3,7 @@ import axios from "axios";
 const API_URL = "http://localhost:5000/stations"; 
 
 export interface Station {
+  id: string;
   _id: string; 
   name: string; 
   nameVi: string; 

@@ -15,16 +15,16 @@ export const AuthProvider = ({ children }) => {
     const token = queryParams.get("token");
     const name = queryParams.get("name");
     const role = queryParams.get("role");
-    const id = queryParams.get("id"); 
+    const id = queryParams.get("id");
 
-  
+
     if (token && name && role && id) {
       localStorage.setItem("accessToken", token);
       localStorage.setItem("name", decodeURIComponent(name));
       localStorage.setItem("role", role);
-      localStorage.setItem("userId", id); 
+      localStorage.setItem("userId", id);
 
-  
+
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setUser({
         token,
@@ -33,9 +33,9 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: true,
         id,
       });
-  
 
-      window.history.replaceState({}, document.title, "/Admin");
+
+      window.history.replaceState({}, document.title, "Admin");
     } else {
       const storedToken = localStorage.getItem("accessToken");
       const storedName = localStorage.getItem("name");
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
       console.log("Role:", storedRole);
       console.log("User ID:", storedId);
 
-  
+
       if (storedToken && storedName && storedRole && storedId) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
         setUser({
@@ -61,19 +61,19 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem("name");
         localStorage.removeItem("role");
         localStorage.removeItem("userId");
-        setUser(null); 
+        setUser(null);
       }
     }
-  
+
     setLoading(false);
   }, []);
-  
-  
+
+
 
   const refreshAccessToken = async () => {
     try {
       const { data } = await axios.post("http://localhost:5000/auth/refresh", {}, { withCredentials: true });
-  
+
       if (data?.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("name", data.name);
@@ -81,30 +81,31 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("userId", data.id);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
 
-      setUser({
-        token: data.accessToken,
-        isAuthenticated: true,
-        name: data.name,
-        role: data.role,
-        id: data.id,
-      });}
+        setUser({
+          token: data.accessToken,
+          isAuthenticated: true,
+          name: data.name,
+          role: data.role,
+          id: data.id,
+        });
+      }
     } catch (error) {
       console.error("Lỗi refresh token:", error);
-      logout(); 
+      logout();
     }
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-        refreshAccessToken();
+      refreshAccessToken();
     }, 9 * 60 * 1000);
     return () => clearInterval(interval);
-}, []);
+  }, []);
 
 
   const login = async (phoneNumber, password) => {
     try {
-      const { data } = await axios.post("http://localhost:5000/auth/login", { phoneNumber, password },  { withCredentials: true } );
+      const { data } = await axios.post("http://localhost:5000/auth/login", { phoneNumber, password }, { withCredentials: true });
 
       if (data?.accessToken) {
         console.log("🔥 Access Token mới:", data.accessToken);
@@ -120,13 +121,13 @@ export const AuthProvider = ({ children }) => {
         if (data.refreshToken) {
           localStorage.setItem("refreshToken", data.refreshToken);
         }
-  
+
         const accessToken = localStorage.getItem("accessToken");
         if (accessToken) {
           axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         }
 
-        setUser({ token: data.accessToken, isAuthenticated: true , name: data.name, role: data.role, id: data.id});
+        setUser({ token: data.accessToken, isAuthenticated: true, name: data.name, role: data.role, id: data.id });
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error.response?.data?.message || error.message);
@@ -140,32 +141,31 @@ export const AuthProvider = ({ children }) => {
   };
 
 
- const logout = async () => {
-  try {
-    await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
-  } catch (error) {
-    console.error("Lỗi đăng xuất:", error);
-  }
+  const logout = async () => {
+    try {
+      await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+    }
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("name");
+    localStorage.removeItem("role");
+    delete axios.defaults.headers.common["Authorization"];
+    setUser(null);
+  };
 
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("name");
-  localStorage.removeItem("role");
-  delete axios.defaults.headers.common["Authorization"];
-  setUser(null);
-};
+  const updateUserInfo = ({ name, role, id }) => {
+    setUser((prev) => ({
+      ...prev,
+      name,
+      role,
+      id,
+    }));
 
-const updateUserInfo = ({ name, role, id }) => {
-  setUser((prev) => ({
-    ...prev,
-    name,
-    role,
-    id,
-  }));
-
-  localStorage.setItem("name", name);
-  localStorage.setItem("role", role);
-  localStorage.setItem("userId", id);
-};
+    localStorage.setItem("name", name);
+    localStorage.setItem("role", role);
+    localStorage.setItem("userId", id);
+  };
 
 
   return (

@@ -16,6 +16,8 @@ const authRoutes = require("./routes/auth.routes");
 const StationRoutes = require("./routes/station.routes"); 
 const metroLineRoutes = require('./routes/line.routes');
 const feedbackRoutes = require('./routes/feedback.routes');
+const newRoutes = require('./routes/new.routes');
+const progressRoutes = require('./routes/progress.routes');
 
 require("./config/passportConfig");
 
@@ -58,6 +60,8 @@ async function startServer() {
     app.use("/auth", authRoutes);
     app.use('/lines', metroLineRoutes);
     app.use('/feedbacks', feedbackRoutes);
+    app.use('/news', newRoutes);
+    app.use('/progress', progressRoutes);
     const PORT = process.env.PORT;
     app.listen(PORT, () => {
       console.log(`🚀 Server chạy trên cổng ${PORT}`);
