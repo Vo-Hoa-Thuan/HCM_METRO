@@ -10,6 +10,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { getAllStations } from '@/api/stationsApi';
+import { getAllLines} from '@/api/lineApi';
 import {
   Popover,
   PopoverContent,

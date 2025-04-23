@@ -20,9 +20,9 @@ const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   
-  if (user.role !== "admin" && user.role !== "staff") {
-    return <Navigate to="/" />;
-  }
+  // if (user.role !== "admin" && user.role !== "user") {
+  //   return <Navigate to="/" />;
+  // }
 
   return <>{children}</>;
 };

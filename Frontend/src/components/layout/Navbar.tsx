@@ -23,14 +23,13 @@ const Navbar = () => {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, logout, user } = useAuth();
+    const [activeTab, setActiveTab] = useState("dashboard");
+
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  function setActiveTab(arg0: string): void {
-    throw new Error('Function not implemented.');
-  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
@@ -81,7 +80,7 @@ const Navbar = () => {
                   <span>Hổ trợ</span>
                 </Link>
               </Button>              
-              {isAuthenticated && (user?.role === "admin" || user?.role === "staff") && (
+              {isAuthenticated &&  (
                 <Button variant="ghost" asChild>
                   <Link to="/admin" className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
@@ -120,13 +119,18 @@ const Navbar = () => {
                        <DropdownMenuContent align="end" className="w-56">
                          <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                          <DropdownMenuSeparator />
-                         <DropdownMenuItem onClick={() => setActiveTab("profile")}>
-                           <User className="mr-2 h-4 w-4" />
-                           <span>Hồ sơ cá nhân</span>
-                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => setActiveTab("settings")}>
+                         <DropdownMenuItem asChild>
+                          <Link to="/admin" onClick={() => setActiveTab("profile")}>
+                            <User className="mr-2 h-4 w-4" />
+                            <span>Hồ sơ cá nhân</span>
+                          </Link>
+                        </DropdownMenuItem>
+
+                         <DropdownMenuItem asChild>
+                          <Link to="/admin" onClick={() => setActiveTab("sittings")}>
                            <Settings className="mr-2 h-4 w-4" />
                            <span>Cài đặt</span>
+                           </Link>
                          </DropdownMenuItem>
                          <DropdownMenuSeparator />
                          <DropdownMenuItem onClick={logout}>
@@ -226,15 +230,18 @@ const Navbar = () => {
                         <DropdownMenuContent align="end" className="w-56">
                           <DropdownMenuLabel>Tài khoản của tôi</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => setActiveTab("profile")}>
+                          <DropdownMenuItem asChild>
+                          <Link to="/admin" onClick={() => setActiveTab("profile")}>
                             <User className="mr-2 h-4 w-4" />
                             <span>Hồ sơ cá nhân</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setActiveTab("settings")}>
-                            <Settings className="mr-2 h-4 w-4" />
-                            <span>Cài đặt</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" onClick={() => setActiveTab("sittings")}>
+                           <Settings className="mr-2 h-4 w-4" />
+                           <span>Cài đặt</span>
+                           </Link>
+                         </DropdownMenuItem>
                           <DropdownMenuItem onClick={logout}>
                             <LogOut className="mr-2 h-4 w-4" />
                             <span>Đăng xuất</span>
