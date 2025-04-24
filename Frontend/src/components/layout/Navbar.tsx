@@ -80,7 +80,7 @@ const Navbar = () => {
                   <span>Hổ trợ</span>
                 </Link>
               </Button>              
-              {isAuthenticated &&  (
+              {isAuthenticated && user.role !== "user" &&  (
                 <Button variant="ghost" asChild>
                   <Link to="/admin" className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
@@ -196,7 +196,7 @@ const Navbar = () => {
               <span>Vé</span>
             </Link>
           </Button>
-          {isAuthenticated && (
+          {isAuthenticated && user.role !== "user" && (
             <Button variant="ghost" className="w-full justify-start" asChild>
               <Link to="/admin" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
                 <Settings className="h-4 w-4" />

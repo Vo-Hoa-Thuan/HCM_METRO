@@ -26,6 +26,7 @@ const Payment = () => {
   const {fare, origin, destination, quantities, route, ticketType, discountPercent} = location.state || {};
 
   const [errors, setErrors] = useState({});
+const newErrors: { [key: string]: string } = {};
 
   const [form, setForm] = useState({
     fullName: "",
@@ -37,7 +38,7 @@ const Payment = () => {
   });
 
   const validateForm = () => {
-    const newErrors = {}; 
+    const newErrors: { [key: string]: string } = {};
     if (!form.fullName.trim()) {
       newErrors.fullName = "Họ tên không được để trống";
     }
@@ -98,19 +99,19 @@ const Payment = () => {
       const total = calculateTotalPrice();
     
       // Tạo đối tượng dữ liệu đơn hàng (order form)
-      const orderForm = {
+      let orderForm: any = {
         orderId,
-        userName: form.fullName,  // Tên người dùng
-        ticketType: ticketType || ticketData?.category ,    // Loại vé
-        userPhone: form.phone, // Sdt nguoi dung 
-        paymentMethod: form.paymentMethod, // Phương thức thanh toán
-        totalPrice: total,             // Tổng tiền thanh toán
-        paymentStatus: 'pending',      // Trạng thái thanh toán (chờ xử lý)
-        routes: route , // Lộ trình di chuyển (nếu có)
-        quantities: quantities || 1, // Số lượng vé (nếu có)
-        createdAt: new Date().toISOString(), // Ngày tạo đơn hàng
+        userName: form.fullName,
+        ticketType: ticketType || ticketData?.category,
+        userPhone: form.phone,
+        paymentMethod: form.paymentMethod,
+        totalPrice: total,
+        paymentStatus: 'pending',
+        routes: route,
+        quantities: quantities || 1,
+        createdAt: new Date().toISOString(),
       };
-
+      
       if (["ngay", "tuan", "thang"].includes(orderForm.ticketType)) {
         const expireDate = new Date();
         if (orderForm.ticketType === "day") expireDate.setDate(expireDate.getDate() + 1);
@@ -499,28 +500,28 @@ const Payment = () => {
               <RadioGroup value={form.paymentMethod} onValueChange={(value) => {
                     console.log("Phương thức thanh toán đã chọn:", value);
                     setForm({ ...form, paymentMethod: value }); }}>
-                {[
-                  { value: "card", label: "Thẻ tín dụng / ghi nợ" },
-                  { value: "qr", label: "Quét mã QR" },
-                  { value: "vnpay", label: "Ví VN-Pay" },
-                  { value: "metro", label: "Thẻ Metro" },
-                ].map((method) => (
-                  <div
-                    key={method.value}
-                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition 
-                                ${form.paymentMethod === method.value
-                                  ? "border-blue-500 bg-blue-50 text-blue-800"
-                                  : "border-gray-300 hover:border-blue-400"}`}
-                    onClick={() => {
-                      console.log("Đã chọn:", method.value);
-                      setForm({ ...form, paymentMethod: method.value })}}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value={method.value} id={method.value} />
-                      <label htmlFor={method.value} className="text-sm">{method.label}</label>
-                    </div>
-                  </div>
-                ))}
+                    {[
+                      { value: "card", label: "Thẻ tín dụng / ghi nợ", icon: "iconcard.png" },
+                      { value: "qr", label: "Quét mã QR", icon: "iconmaqr.jpg" },
+                      { value: "vnpay", label: "Ví VN-Pay", icon: "iconvnpay.jpg" },
+                      { value: "metro", label: "Thẻ Metro", icon: "iconthemetro.png" },
+                    ].map((method) => (
+                      <div
+                        key={method.value}
+                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition 
+                                    ${form.paymentMethod === method.value
+                                      ? "border-blue-500 bg-blue-50 text-blue-800"
+                                      : "border-gray-300 hover:border-blue-400"}`}
+                        onClick={() => setForm({ ...form, paymentMethod: method.value })}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <img src={method.icon} alt={method.label} className="w-12 h-12" />
+                          <RadioGroupItem value={method.value} id={method.value} />
+                          <label htmlFor={method.value} className="text-sm">{method.label}</label>
+                        </div>
+                      </div>
+                    ))}
+
               </RadioGroup>
             </CardContent>
           </Card>
