@@ -54,7 +54,7 @@ const Navbar = () => {
               <Button variant="ghost" asChild>
                 <Link to="/routes" className="flex items-center gap-2">
                   <Route className="h-4 w-4" />
-                  <span>Lộ trình</span>
+                  <span>Tra cứu lộ trình</span>
                 </Link>
               </Button>                       
               <Button variant="ghost" asChild>

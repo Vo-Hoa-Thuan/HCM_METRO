@@ -70,7 +70,7 @@ export const createTicket = async (ticketData: Tickets) => {
   // Get a single ticket by ID
   export const getTicketById = async (id: string) => {
     try {
-      const response = await axios.get(`${API_URL}/${id}`);
+      const response = await axios.get(`${API_URL}/get/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching ticket with ID ${id}:`, error);

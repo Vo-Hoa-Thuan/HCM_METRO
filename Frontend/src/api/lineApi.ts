@@ -12,6 +12,7 @@ export interface MetroLine {
     station: string; // ID của station
     order: number;   // Thứ tự trong tuyến
   }>;
+
   operatingHours: {
     weekday: string; 
     weekend: string; 
@@ -25,6 +26,25 @@ export interface MetroLine {
   length: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface RouteStep {
+  type: 'metro' | 'walk';
+  from: string;
+  to: string;
+  line?: string;
+  duration: number;
+  distance: number;
+}
+
+export interface RouteOption {
+  id: string;
+  steps: RouteStep[];
+  totalDuration: number;
+  totalDistance: number;
+  price: number;
+  departureTime: string;
+  arrivalTime: string;
 }
 
 export const getAllLines = async () => {
@@ -73,5 +93,22 @@ export const deleteLine = async (id: string): Promise<void> => {
   } catch (error) {
     console.error(`Error deleting metro line with id ${id}:`, error);
     throw error;
+  }
+};
+
+export const searchRoutes = async (origin: string, destination: string) => {
+  try {
+    const response = await axios.get(`${API_URL}/search`, {
+      params: { origin, destination },
+    });
+
+    if (response.status === 200) {
+      return response.data; 
+    } else {
+      throw new Error('Không thể tìm thấy lộ trình');
+    }
+  } catch (error) {
+    console.error('Lỗi khi tìm tuyến đường:', error);
+    throw new Error(error.response?.data?.message || 'Lỗi hệ thống khi tìm tuyến đường');
   }
 };

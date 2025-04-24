@@ -11,6 +11,17 @@ exports.getAllStations = async (req, res) => {
   }
 };
 
+// Lấy danh sách ga đang hoạt động
+exports.getActiveStations = async (req, res) => {
+  try {
+    const activeStations = await Station.find({ status: 'operational' });
+    res.status(200).json(activeStations);
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách ga:', error);
+    res.status(500).json({ message: 'Lỗi server khi lấy danh sách ga' });
+  }
+};
+
 // Lấy thông tin 1 ga theo id
 exports.getStationById = async (req, res) => {
   try {

@@ -15,6 +15,8 @@ import NotFound from "./pages/NotFound";
 import Payment from "./pages/Payment";
 import Progress from './pages/Progress';
 import News from './pages/News';
+import PaymentSuccessPage from './pages/VN_Pay_payment/payment-success';
+import PaymentFailPage from './pages/VN_Pay_payment/payment-fail';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -22,7 +24,6 @@ import FloatingFeedbackButton from './components/feedback/FloatingFeedbackButton
 import "./App.css";
 
 function App() {
-  // Create a client
   const queryClient = new QueryClient();
 
   return (
@@ -47,6 +48,8 @@ function App() {
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="/404" element={<NotFound />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/payment/success" element={<PaymentSuccessPage />} />
+            <Route path="/payment/fail" element={< PaymentFailPage/>} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Routes>
         </AuthProvider>

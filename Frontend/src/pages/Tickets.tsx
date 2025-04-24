@@ -89,20 +89,6 @@ const Tickets = () => {
       return updatedQuantities;
     });
   };
-  // Xử lý khi người dùng nhấn nút "Mua vé"
-  // const handleBuyTicket = (ticketId) => {
-  //   const quantity = quantities[ticketId] || 1; 
-  //   const isLoggedIn = localStorage.getItem("accessToken")
-  //   if (!isLoggedIn) {
-  //     console.log("Người dùng chưa đăng nhập. Không thể mua vé.");
-  //     toast({
-  //       title: "Cảnh báo",
-  //       description: "Bạn cần đăng nhập để mua vé."
-  //     });
-  //     return;
-  //   }
-  //   console.log(`Mua ${quantity} vé với ID: ${ticketId}`);
-  // };
 
   const handleBuyTicket = (ticketId) => {
     const quantity = quantities[ticketId] || 1; 
@@ -127,7 +113,6 @@ const Tickets = () => {
       return;
     }
     
-    // Nếu đã đăng nhập, chuyển hướng đến trang thanh toán
     navigate("/payment", {
       state: {
         ticketId, 

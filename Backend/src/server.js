@@ -18,6 +18,8 @@ const metroLineRoutes = require('./routes/line.routes');
 const feedbackRoutes = require('./routes/feedback.routes');
 const newRoutes = require('./routes/new.routes');
 const progressRoutes = require('./routes/progress.routes');
+const vnpayRoutes = require('./routes/vnpay.routes');
+const orderRoutes = require('./routes/payment.routes'); 
 
 require("./config/passportConfig");
 
@@ -62,6 +64,9 @@ async function startServer() {
     app.use('/feedbacks', feedbackRoutes);
     app.use('/news', newRoutes);
     app.use('/progress', progressRoutes);
+    app.use("/vnpay",vnpayRoutes );
+    app.use("/order", orderRoutes);
+    
     const PORT = process.env.PORT;
     app.listen(PORT, () => {
       console.log(`🚀 Server chạy trên cổng ${PORT}`);

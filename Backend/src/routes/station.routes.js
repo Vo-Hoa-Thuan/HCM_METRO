@@ -8,5 +8,6 @@ router.post('/create', stationController.createStation);
 router.put('/update/:id', stationController.updateStation); 
 router.delete('/delete/:id', stationController.deleteStation); 
 router.get('/:id/line', stationController.getStationsByLineId);
+router.get('/active', stationController.getActiveStations);
 
 module.exports = router;
