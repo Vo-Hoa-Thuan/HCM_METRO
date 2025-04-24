@@ -474,17 +474,17 @@ const StationsTab = ({ searchTerm }: StationsTabProps) => {
               
               <CardFooter className="px-6 py-3 text-xs text-muted-foreground">
                 <div className="flex justify-between items-center w-full">
-                  <Badge 
-                    variant={
-                      station.status === 'operational' ? 'default' : 
-                      station.status === 'construction' ? 'secondary' : 
-                      station.status === 'planned' ? 'outline' : 'destructive'
-                    }
-                    className="text-xs"
+                <Badge 
+                    className={`mt-1 text-white
+                      ${station.status === 'operational' ? 'bg-active' : ''}
+                      ${station.status === 'construction' ? 'bg-inactive' : ''}
+                      ${station.status === 'planned' ? 'bg-success' : ''}
+                      ${station.status === 'closed' ? 'bg-block' : ''}
+                    `}
                   >
                     {station.status === 'operational' ? 'Đang hoạt động' : 
                      station.status === 'construction' ? 'Đang xây dựng' : 
-                     station.status === 'planned' ? 'Đã lên kế hoạch' : 'Đã đóng'}
+                     station.status === 'planned' ? 'Đang lên kết hoạch' : 'Ngừng hoạt động'}
                   </Badge>
                   <Button size="sm" variant="ghost" onClick={() => toggleExpandStation(station._id)}>
                     {expandedStation === station._id ? "Thu gọn" : "Chi tiết"}

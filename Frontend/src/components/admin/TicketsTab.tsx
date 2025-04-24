@@ -421,11 +421,14 @@ const TicketsTab = ({ searchTerm }: TicketsTabProps) => {
               
               <CardFooter className="px-6 py-3">
                 <div className="flex justify-between items-center w-full">
-                  <Badge 
-                    variant={ticket.status === 'active' ? 'default' : 'secondary'}
-                    className="text-xs"
+                <Badge 
+                    className={`mt-1 text-white
+                      ${ticket.status === 'active' ? 'bg-active' : ''}
+                      ${ticket.status === 'inactive' ? 'bg-inactive' : ''}
+                    `}
                   >
-                    {ticket.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}
+                    {ticket.status === 'active' ? 'Đang hoạt động' : 
+                     ticket.status === 'inactive' ? 'Không hoạt động' : 'Đã khóa'}
                   </Badge>
                   <Button size="sm" variant="ghost" onClick={() => toggleExpandTicket(ticket._id)}>          
                     {expandedTicket === ticket._id ? "Thu gọn" : "Chi tiết"}
