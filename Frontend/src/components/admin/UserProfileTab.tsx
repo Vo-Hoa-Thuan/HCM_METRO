@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getUserById, updateUser} from "@/api/userApi";
+import { getUserById, updateUser, changePassword} from "@/api/userApi";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "@/components/ui/motion";
 import { 
@@ -37,7 +37,9 @@ import {
   Globe,
   LogOut,
   CheckCircle,
-  Clock
+  Clock,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,6 +55,14 @@ const UserProfileTab = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("vi");
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [appNotifications, setAppNotifications] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  
+  const toggleShowPassword = () => setShowPassword(!showPassword);
   
   const [profileData, setProfileData] = useState({
     name: "",
@@ -165,14 +175,45 @@ useEffect(() => {
     });
   };
   
-  const handleSavePassword = (e: React.FormEvent) => {
+  const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Mật khẩu đã được cập nhật",
-      description: "Mật khẩu đã được thay đổi thành công",
-      duration: 3000,
-    });
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Mật khẩu không khớp",
+        description: "Mật khẩu mới và xác nhận mật khẩu không giống nhau",
+      });
+      return;
+    }
+  
+    try {
+      await changePassword(user.id, passwordData.currentPassword, passwordData.newPassword);
+
+  
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+  
+      toast({
+        title: "Đổi mật khẩu thành công",
+        description: "Mật khẩu của bạn đã được cập nhật",
+        duration: 3000,
+        className: "bg-success text-white",
+      });
+    } catch (error: any) {
+      console.error("❌ Lỗi đổi mật khẩu:", error);
+      toast({
+        variant: "destructive",
+        title: "Đổi mật khẩu thất bại",
+        description: error.response?.data?.message || "Đã có lỗi xảy ra",
+      });
+    }
   };
+  
+  
   
   return (
     <div className="space-y-6">
@@ -380,7 +421,20 @@ useEffect(() => {
                     <Label htmlFor="current-password">Mật khẩu hiện tại</Label>
                     <div className="relative">
                       <Key className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input id="current-password" type="password" className="pl-10" />
+                      <Input
+                        id="current-password"
+                        type={showPassword ? "text" : "password"} 
+                        className="pl-10 caret-black cursor-text"
+                        value={passwordData.currentPassword}
+                        onChange={(e) =>
+                          setPasswordData((prev) => ({ ...prev, currentPassword: e.target.value }))
+                        }
+                      />
+                       <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1"
+                          onClick={toggleShowPassword}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
                     </div>
                   </div>
                   
@@ -389,14 +443,40 @@ useEffect(() => {
                       <Label htmlFor="new-password">Mật khẩu mới</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input id="new-password" type="password" className="pl-10" />
+                        <Input
+                          id="new-password"
+                          type={showPassword ? "text" : "password"} 
+                          className="pl-10 caret-black cursor-text"
+                          value={passwordData.newPassword}
+                          onChange={(e) =>
+                            setPasswordData((prev) => ({ ...prev, newPassword: e.target.value }))
+                          }
+                        />
+                         <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1"
+                          onClick={toggleShowPassword}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="confirm-password">Xác nhận mật khẩu</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input id="confirm-password" type="password" className="pl-10" />
+                        <Input
+                          id="confirm-password"
+                          type={showPassword ? "text" : "password"} 
+                          className="pl-10 caret-black cursor-text"
+                          value={passwordData.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordData((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                          }
+                        />
+                         <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1"
+                          onClick={toggleShowPassword}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
                       </div>
                     </div>
                   </div>

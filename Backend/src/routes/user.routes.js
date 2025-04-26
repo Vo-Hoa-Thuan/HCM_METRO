@@ -11,5 +11,6 @@ router.get('/:id', userController.getUserById);
 router.put('/:id', authenticateToken, authorizeRoles('admin'), userController.updateUser);
 router.delete('/:id', authenticateToken, authorizeRoles('admin'), userController.deleteUser);
 router.get('/new-users/stats', userController.getNewUsersByTime);
+router.put('/:id/change-password', userController.changePassword);
 
 module.exports = router;

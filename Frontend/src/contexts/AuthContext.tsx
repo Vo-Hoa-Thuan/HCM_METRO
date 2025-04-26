@@ -6,9 +6,9 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [generalError, setGeneralError] = useState("");  // Di chuyển vào trong AuthProvider
 
   useEffect(() => {
-
     const url = new URL(window.location.href);
     const queryParams = url.searchParams;
 
@@ -17,13 +17,11 @@ export const AuthProvider = ({ children }) => {
     const role = queryParams.get("role");
     const id = queryParams.get("id");
 
-
     if (token && name && role && id) {
       localStorage.setItem("accessToken", token);
       localStorage.setItem("name", decodeURIComponent(name));
       localStorage.setItem("role", role);
       localStorage.setItem("userId", id);
-
 
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setUser({
@@ -34,18 +32,12 @@ export const AuthProvider = ({ children }) => {
         id,
       });
 
-
       window.history.replaceState({}, document.title, "Admin");
     } else {
       const storedToken = localStorage.getItem("accessToken");
       const storedName = localStorage.getItem("name");
       const storedRole = localStorage.getItem("role");
       const storedId = localStorage.getItem("userId");
-      console.log("Token:", storedToken);
-      console.log("Name:", storedName);
-      console.log("Role:", storedRole);
-      console.log("User ID:", storedId);
-
 
       if (storedToken && storedName && storedRole && storedId) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
@@ -67,8 +59,6 @@ export const AuthProvider = ({ children }) => {
 
     setLoading(false);
   }, []);
-
-
 
   const refreshAccessToken = async () => {
     try {
@@ -102,18 +92,11 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, []);
 
-
   const login = async (phoneNumber, password) => {
     try {
       const { data } = await axios.post("http://localhost:5000/auth/login", { phoneNumber, password }, { withCredentials: true });
 
       if (data?.accessToken) {
-        console.log("🔥 Access Token mới:", data.accessToken);
-        console.log("🔥 Refresh Token mới:", data.refreshToken);
-        console.log("🔥 Tên:", data.name);
-        console.log("🔥 Id:", data.id);
-        console.log("🔥 role:", data.role);
-
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("role", data.role);
         localStorage.setItem("name", data.name);
@@ -128,18 +111,18 @@ export const AuthProvider = ({ children }) => {
         }
 
         setUser({ token: data.accessToken, isAuthenticated: true, name: data.name, role: data.role, id: data.id });
+        setGeneralError("");
       }
     } catch (error) {
-      console.error("Lỗi đăng nhập:", error.response?.data?.message || error.message);
+      const errorMessage = error.response?.data?.message || error.message || "Đăng nhập thất bại";
+      console.error("Lỗi đăng nhập:", errorMessage);
+      throw new Error(errorMessage);
     }
   };
-
-
 
   const loginWithGoogle = () => {
     window.location.href = "http://localhost:5000/auth/google";
   };
-
 
   const logout = async () => {
     try {
@@ -167,9 +150,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("userId", id);
   };
 
-
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: user?.isAuthenticated || false, login, logout, loginWithGoogle, loading, updateUserInfo }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: user?.isAuthenticated || false, login, logout, loginWithGoogle, loading, updateUserInfo, generalError, setGeneralError }}>
       {children}
     </AuthContext.Provider>
   );

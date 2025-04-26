@@ -171,3 +171,22 @@ export const getNewUsersByTimeRange = async (range: 'day' | 'week' | 'month' | '
   }
 };
 
+// Hàm đổi mật khẩu người dùng
+export const changePassword = async (id: string, oldPassword: string, newPassword: string) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      api.defaults.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await api.put(`/users/${id}/change-password`, {
+      oldPassword,
+      newPassword
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to change password for user ${id}:`, error);
+    throw new Error(error.response?.data?.message || 'Unknown error');
+  }
+};

@@ -24,71 +24,70 @@ const generateTokens = (user) => {
 };
 
 exports.login = async (req, res) => {
-    try {
-      const { phoneNumber, password } = req.body;     
-      console.log("Dữ liệu nhận được:", { phoneNumber, password });
-  
-      if (!phoneNumber || !password) {
-        return res.status(400).json({ message: "Vui lòng nhập số điện thoại và mật khẩu!" });
-      }
-  
-      const user = await User.findOne({ phoneNumber });
-      if (!user) {
-        return res.status(400).json({ message: "Số điện thoại chưa đăng ký!" });
-      }
-  
-      console.log("Dữ liệu người dùng trong DB:", user);
-  
-      if (!user.password) {
-        return res.status(500).json({ message: "Mật khẩu không hợp lệ hoặc chưa được mã hóa!" });
-      }
-  
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Mật khẩu sai!" });
-      }
-  
-      const { accessToken, refreshToken } = generateTokens(user);
-  
-      await User.updateOne({ _id: user._id }, { refreshToken });
-  
-      // 🔥 Phân tích thiết bị và IP
-      const ua = parser(req.headers["user-agent"]);
-      const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-  
-      // 🔥 Lưu UserSession
-      await UserSession.create({
-        userId: user._id,
-        refreshToken,
-        userAgent: req.headers["user-agent"],
-        ip,
-        os: ua.os.name + " " + ua.os.version,
-        browser: ua.browser.name + " " + ua.browser.version,
-        device: ua.device.model || "Unknown",
-        lastActiveAt: new Date(),
-      });
-  
-      // 🔥 Đặt refreshToken vào cookie
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",    
-        sameSite: "strict",
-      });
-  
-      // 🔥 Trả về response
-      res.json({ 
-        accessToken, 
-        refreshToken, 
-        role: user.role, 
-        name: user.name, 
-        id: user._id.toString()
-      });
-  
-    } catch (error) {
-      console.error("Lỗi server:", error);
-      res.status(500).json({ message: "Lỗi server!" });
+  try {
+    const { phoneNumber, password } = req.body;     
+    console.log("Dữ liệu nhận được:", { phoneNumber, password });
+
+    if (!phoneNumber || !password) {
+      return res.status(400).json({ message: "Vui lòng nhập số điện thoại và mật khẩu!" });
     }
-  };
+
+    const user = await User.findOne({ phoneNumber });
+    if (!user) {
+      return res.status(400).json({ message: "Số điện thoại chưa đăng ký!" });
+    }
+
+    console.log("Dữ liệu người dùng trong DB:", user);
+
+    if (!user.password) {
+      return res.status(500).json({ message: "Mật khẩu không hợp lệ hoặc chưa được mã hóa!" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Mật khẩu sai!" });
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    await User.updateOne({ _id: user._id }, { refreshToken });
+
+    const ua = parser(req.headers["user-agent"]);
+    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+
+    await UserSession.create({
+      userId: user._id,
+      refreshToken,
+      userAgent: req.headers["user-agent"],
+      ip,
+      os: ua.os.name + " " + ua.os.version,
+      browser: ua.browser.name + " " + ua.browser.version,
+      device: ua.device.model || "Unknown",
+      lastActiveAt: new Date(),
+    });
+
+    // Đặt refreshToken vào cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",    
+      sameSite: "strict",
+    });
+
+    // Trả về thông tin người dùng và token
+    res.json({ 
+      accessToken, 
+      refreshToken, 
+      role: user.role, 
+      name: user.name, 
+      id: user._id.toString()
+    });
+
+  } catch (error) {
+    console.error("Lỗi server:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+};
+
 
 
 exports.refreshToken = async (req, res) => {

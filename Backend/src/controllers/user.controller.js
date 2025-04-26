@@ -196,3 +196,32 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ error: "Lỗi khi thống kê người dùng" });
     }
 };
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const userId = req.params.id;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User không tồn tại" });
+        }
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Mật khẩu cũ không đúng" });
+        }
+
+        // Hash mật khẩu mới
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        user.password = hashedNewPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Đổi mật khẩu thành công" });
+    } catch (error) {
+        console.error("Lỗi khi đổi mật khẩu:", error);
+        res.status(500).json({ error: "Lỗi khi đổi mật khẩu" });
+    }
+};

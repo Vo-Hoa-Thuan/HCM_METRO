@@ -1,4 +1,4 @@
-import { useState , useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,10 @@ import {
 } from "@/components/ui/form";
 import { motion } from "@/components/ui/motion";
 
-
 const loginSchema = z.object({
-  phone: z.string().min(10, { message: "Số điện thoại không hợp lệ" }),
+  phone: z.string().min(10, { message: "Số điện thoại không hợp lệ" }).regex(/^\d{10}$/, { message: "Số điện thoại phải là 10 chữ số" }),
   password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
 });
-
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -40,18 +38,24 @@ const Login = () => {
       password: "",
     },
   });
+
   const onSubmit = async (values: LoginFormValues) => {
     setGeneralError("");
-  
     try {
       await login(values.phone, values.password);
     } catch (error: any) {
-      setGeneralError(error.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+      console.log("Full error object:", error);
+      console.error("Lỗi đăng nhập:", error);
+      const errorMessage = error.message || "Số điện thoại hoặc mật khẩu không đúng.";
+      setGeneralError(errorMessage);
+     
     }
   };
+  
 
   useEffect(() => {
     if (user?.isAuthenticated) {
+      setGeneralError("");
       const redirectData = localStorage.getItem("redirectAfterLogin");
       if (redirectData) {
         const { path, state } = JSON.parse(redirectData);
@@ -62,20 +66,18 @@ const Login = () => {
           navigate("/Admin");
         } else if (user?.isAuthenticated) {
           navigate("/");
-        }        
+        }
       }
     }
   }, [user, navigate]);
-  
-
 
   const toggleShowPassword = () => setShowPassword(!showPassword);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Button 
-        variant="outline" 
-        size="sm" 
+      <Button
+        variant="outline"
+        size="sm"
         className="fixed top-4 left-4 z-10 flex items-center gap-1"
         onClick={() => navigate("/")}
       >
@@ -100,7 +102,7 @@ const Login = () => {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {generalError && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm"
@@ -140,7 +142,6 @@ const Login = () => {
                           type={showPassword ? "text" : "password"} 
                           className="pl-10 pr-10 border-accent/20 focus:border-accent"
                           autoComplete="current-password"
-
                           {...field} 
                         />
                         <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1"
@@ -152,12 +153,11 @@ const Login = () => {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-                />
+                )} />
 
-                <Button 
-                  type="submit" 
-                  className="w-full hover:shadow-md" 
+                <Button
+                  type="submit"
+                  className="w-full hover:shadow-md"
                   disabled={loading}
                 >
                   {loading ? "Đang đăng nhập..." : (
