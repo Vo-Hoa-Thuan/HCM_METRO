@@ -38,13 +38,19 @@
     npm install
     ```
 
-4. **Tạo file `.env` trong thư mục gốc và thêm các biến sau**:
+4. **Tạo file `.env` trong thư mục Backend và thêm các biến sau**:
     ```env
-    PORT=3000
+    PORT=5000
     MONGO_URI=your_mongodb_connection_string
+    LOCALHOST=http://localhost:5713
     JWT_SECRET=your_jwt_secret
     GOOGLE_CLIENT_ID=your_google_client_id
     GOOGLE_CLIENT_SECRET=your_google_client_secret
+    REFRESH_SECRET=your_refresh_secret
+    SESSION_SECRET=your_sesion_secret
+    TWILIO_ACCOUNT_SID=your_twilio_account_sid
+    TWILIO_AUTH_TOKEN==your_twilio_auth_token
+    TWILIO_PHONE_NUMBER==your_twilio_phone_number
     ```
 
 5. **Khởi động server ở chế độ phát triển (có reload và preview)**:
@@ -52,41 +58,42 @@
     npm run dev
     ```
 
-### Cấu Trúc Thư Mục
+### 📂 Cấu Trúc Thư Mục
 
+```plaintext
 📂 HCM_METRO
 │
 │── 📂 backend                    # Backend với Node.js + Express + MongoDB
-│   │── 📂 controllers           # Xử lý logic các API endpoint
+│   │── 📂 controllers            # Xử lý logic các API endpoint
 │   │── 📂 models                 # Định nghĩa schema và model cho MongoDB
-│   │── 📂 routes                   # Định nghĩa các route API và ánh xạ controller
-│   │── 📂 config                  #  Cấu hình ứng dụng (kết nối DB, JWT, API key...)
-│   │── 📂 middleware          # Middleware xử lý xác thực, ghi log, phân quyền...
-│   │── 📂 utils                      # Các hàm tiện ích dùng chung cho backend
-│   │── server.js                      # Điểm khởi chạy backend (Express server)
+│   │── 📂 routes                  # Định nghĩa các route API và ánh xạ controller
+│   │── 📂 config                  # Cấu hình ứng dụng (kết nối DB, JWT, API key...)
+│   │── 📂 middleware             # Middleware xử lý xác thực, ghi log, phân quyền...
+│   │── 📂 utils                   # Các hàm tiện ích dùng chung cho backend
+│   │── server.js                  # Điểm khởi chạy backend (Express server)
 │   └── package.json              # Cấu hình gói Node.js và các dependency
 │
-│── 📂 frontend                    # Frontend với React.js  
+│── 📂 frontend                   # Frontend với React.js  
 │   │── 📂 src                     
-│   │   │── 📂 components     # Các thành phần giao diện UI (Button, Navbar,..)
-│   │   │── 📂 pages               # Các trang chính (Home, Tìm tuyến, Mua vé,...)
-│   │   │── 📂 api                   # Định nghĩa các hàm gọi API backend
+│   │   │── 📂 components         # Các thành phần giao diện UI (Button, Navbar,..)
+│   │   │── 📂 pages              # Các trang chính (Home, Tìm tuyến, Mua vé,...)
+│   │   │── 📂 api                # Định nghĩa các hàm gọi API backend
 │   │   │── 📂 hooks              # Các custom hooks dùng chung (useAuth,...)
 │   │   │── 📂 contexts           # React Context quản lý trạng thái toàn cục 
-│   │   │── 📂 lib                    # Thư viện cấu hình (ví dụ: axios instance, format 
-│   │   │── 📂 utils                 # Các hàm tiện ích phía frontend 
-│   │   │── App.js                    # Thành phần gốc của ứng dụng React
-│   │   │── index.js                  # Điểm vào chính của ứng dụng React
-│   └── package.json                # Cấu hình gói React và dependency
+│   │   │── 📂 lib                 # Thư viện cấu hình (axios instance, format date,...)
+│   │   │── 📂 utils               # Các hàm tiện ích phía frontend 
+│   │   │── App.js                 # Thành phần gốc của ứng dụng React
+│   │   │── index.js               # Điểm vào chính của ứng dụng React
+│   └── package.json              # Cấu hình gói React và dependency
 │
 │── 📂 database                   # Dữ liệu mẫu (JSON) hoặc các bản backup MongoDB
-│── 📂 docs                         # Tài liệu kỹ thuật, sơ đồ hệ thống, mô tả API...
-│── 📂 public                      # Tệp tĩnh phục vụ frontend (favicon,, logo...)
-│── .gitignore                       # Bỏ qua file không cần thiết khi commit
-│── README.md               # Tài liệu hướng dẫn cài đặt và sử dụng dự án
-│── .env                               # Chứa biến môi trường
+│── 📂 docs                       # Tài liệu kỹ thuật, sơ đồ hệ thống, mô tả API...
+│── 📂 public                     # Tệp tĩnh phục vụ frontend (favicon, logo...)
+│── .gitignore                    # Bỏ qua file không cần thiết khi commit
+│── README.md                     # Tài liệu hướng dẫn cài đặt và sử dụng dự án
+│── .env                           # Chứa biến môi trường
 
-
+```
 
 
 ## 💡 Định Hướng Phát Triển
@@ -104,10 +111,6 @@ Bạn có thể:
 - Gửi **issue** nếu phát hiện lỗi.
 - Tạo **pull request** nếu muốn nâng cấp/chỉnh sửa tính năng.
 - Góp ý về UI/UX, bảo mật, hiệu năng, nội dung,...
-
-## 📄 Giấy Phép
-
-Dự án được phát hành theo **giấy phép MIT**.
 
 ---
 
