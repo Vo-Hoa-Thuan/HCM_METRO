@@ -58,6 +58,21 @@
     npm run dev
     ```
 
+6. **Sau khi khởi động server tiếp tục tạo file docker-compose.yml**:
+    ```bash
+    your docker-compose.yml file
+    ```
+    
+7. **Sau khi đã có docker-compose.yml, chỉ cần chạy:**:
+    ```bash
+    docker-compose up --build
+    ```
+Docker sẽ tự động:
+    Build backend + frontend từ Dockerfile.
+    Pull image MongoDB.
+    Tạo mạng nội bộ để các service giao tiếp với nhau.
+
+
 ### 📂 Cấu Trúc Thư Mục
 
 ```plaintext
