@@ -26,7 +26,7 @@ const Payment = () => {
   const {fare, origin, destination, quantities, route, ticketType, discountPercent} = location.state || {};
 
   const [errors, setErrors] = useState({});
-const newErrors: { [key: string]: string } = {};
+  const newErrors: { [key: string]: string } = {};
 
   const [form, setForm] = useState({
     fullName: "",
@@ -190,8 +190,23 @@ const newErrors: { [key: string]: string } = {};
     return roundedTotal;
   };
   
-
+  const today = new Date();
+  let availableUntil = "";
   
+  if (ticketData?.category === "ngay") {
+    availableUntil = today.toLocaleDateString("vi-VN"); 
+  } else if (ticketData?.category === "tuan") {
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    availableUntil = nextWeek.toLocaleDateString("vi-VN"); 
+  } else if (ticketData?.category === "thang") {
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(today.getMonth() + 1);
+    availableUntil = nextMonth.toLocaleDateString("vi-VN");
+  } else {
+    availableUntil = "31/12/2025";
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -323,7 +338,7 @@ const newErrors: { [key: string]: string } = {};
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Thời gian hiệu lực</span>
                   <span className="font-medium text-blue-700">
-                    Từ hôm nay đến {ticketData?.availableUntil || "31/12/2025"}
+                     Từ hôm nay đến {availableUntil}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">

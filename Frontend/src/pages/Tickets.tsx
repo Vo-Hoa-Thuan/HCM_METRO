@@ -11,6 +11,14 @@ import { getTickets, getTicketTypes,  getTicketsByType, formatPrice} from '@/api
 import { DialogClose } from '@radix-ui/react-dialog';
 import { useNavigate } from 'react-router-dom';
 
+const ticketTypeLabels: Record<string, string> = {
+  luot: "Vé lượt",
+  "khu hoi": "Vé khứ hồi",
+  nhom: "Vé nhóm",
+  ngay: "Vé ngày",
+  tuan: "Vé tuần",
+  thang: "Vé tháng",
+};
 
 const Tickets = () => {
   const [ticketTypes, setTicketTypes] = useState([]);
@@ -143,8 +151,8 @@ const Tickets = () => {
                   value={type}
                   className="px-4 py-1 text-center border rounded-lg whitespace-nowrap flex-shrink-0"
                 >
-                  {type}
-                </TabsTrigger>
+                {ticketTypeLabels[type]}
+            </TabsTrigger>
               ))
             ) : (
               <p>Không có loại vé nào để hiển thị.</p>
@@ -163,12 +171,9 @@ const Tickets = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Giá vé:</span>
-                      <span>{ticket.price}</span>
+                      <span>{formatPrice(ticket.price)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Có hiệu lực:</span>
-                      <span>{ticket.validity_unit || "Không xác định"}</span>
-                    </div>
+                    
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">

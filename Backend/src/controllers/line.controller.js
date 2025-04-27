@@ -265,7 +265,6 @@ const buildStationGraph = (lines) => {
 
       stationIdToName[currentId] = currentName;
 
-      // Khởi tạo nếu chưa có
       if (!graph[currentId]) {
         graph[currentId] = new Set();
       }
@@ -280,10 +279,8 @@ const buildStationGraph = (lines) => {
         }
         graph[prevId].add(currentId);
       }
-
     }
   });
-
   // In ra đồ thị với tên trạm
   const readableGraph = {};
   for (const id in graph) {
@@ -291,7 +288,7 @@ const buildStationGraph = (lines) => {
     readableGraph[name] = Array.from(graph[id]).map(neighborId => stationIdToName[neighborId] || neighborId);
   }
 
-  console.log('🚇 Đồ thị ga metro (dùng tên):');
+  console.log('🚇 Đồ thị ga metro :');
   console.log(JSON.stringify(readableGraph, null, 2));
 
   return graph;

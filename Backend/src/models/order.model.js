@@ -42,15 +42,14 @@ const OrderSchema = new mongoose.Schema({
     default: Date.now,
   },
 
-  // Thêm theo loại vé
   expiryDate: {
-    type: Date, // Nếu là vé không giới hạn lượt: vé ngày, tuần, tháng
+    type: Date, 
   },
   usageCount: {
-    type: Number, // Nếu là vé lượt, khứ hồi: số lượt
+    type: Number, 
   },
   groupSize: {
-    type: Number, // Nếu là vé nhóm: số người
+    type: Number,
   }, 
   qrCode: {
     type: String, 

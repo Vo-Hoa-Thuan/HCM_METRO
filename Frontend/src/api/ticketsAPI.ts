@@ -40,7 +40,7 @@ export const getTickets = async (): Promise<(Tickets & { validityPeriod?: number
 
       if (availableFrom && availableUntil) {
         const diffTime = Math.abs(availableUntil.getTime() - availableFrom.getTime());
-        validityPeriod = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        validityPeriod = Math.ceil(diffTime / (1000 * 60 * 60 * 24))+1; 
       }
 
       return {
