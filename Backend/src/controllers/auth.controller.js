@@ -105,11 +105,11 @@ exports.googleCallback = (req, res, next) => {
 
       // Redirect to Frontend with details
       res.redirect(
-        `${config.frontendUrl}/?token=${accessToken}&name=${encodeURIComponent(user.name)}&role=${user.role}&id=${user._id}`
+        `${config.localhost}/?token=${accessToken}&name=${encodeURIComponent(user.name)}&role=${user.role}&id=${user._id}`
       );
     } catch (error) {
       console.error("Google verify error:", error);
-      return res.redirect(`${config.frontendUrl}/login?error=server_error`);
+      return res.redirect(`${config.localhost}/login?error=server_error`);
     }
   })(req, res, next);
 
