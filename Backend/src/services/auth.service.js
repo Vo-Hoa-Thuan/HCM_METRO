@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user.model');
 const UserSession = require('../models/UserSession');
-const AppError = require('../utils/AppError');
+const AppError = require('../utils/appError');
 const config = require('../config/config'); // We need to create this config file next
 const parser = require('ua-parser-js');
 
