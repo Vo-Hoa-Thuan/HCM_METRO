@@ -1,4 +1,11 @@
+const fs = require('fs');
+const trace = (msg) => fs.appendFileSync('trace.log', msg + '\n');
+
+trace('Starting server.js');
+
 const express = require("express");
+trace('Express loaded');
+
 const cors = require("cors");
 const session = require("express-session");
 const passport = require("passport");
@@ -7,25 +14,35 @@ const EventEmitter = require("events");
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+trace('Standard/Middleware modules loaded');
 
 const connectDB = require("./config/db");
 const config = require('./config/config');
 const errorHandler = require('./middlewares/error.middleware');
 const logger = require('./utils/logger');
+trace('Config/Utils loaded');
 
 const userRoutes = require("./routes/user.routes");
+trace('userRoutes loaded');
 const ticketRoutes = require("./routes/ticket.routes");
+trace('ticketRoutes loaded');
 const authRoutes = require("./routes/auth.routes");
+trace('authRoutes loaded');
 const StationRoutes = require("./routes/station.routes");
+trace('StationRoutes loaded');
 const metroLineRoutes = require('./routes/line.routes');
+trace('metroLineRoutes loaded');
 const feedbackRoutes = require('./routes/feedback.routes');
 const newRoutes = require('./routes/new.routes');
 const progressRoutes = require('./routes/progress.routes');
 const vnpayRoutes = require('./routes/vnpay.routes');
 const orderRoutes = require('./routes/payment.routes');
 const trainRoutes = require('./routes/train.routes');
+trace('All routes loaded');
 
 require("./config/passportConfig");
+trace('passportConfig loaded');
+
 
 const app = express();
 
@@ -35,19 +52,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Security Middleware
-// app.use(helmet());
 app.use(compression());
-
-// Rate Limiting
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   standardHeaders: true,
-//   legacyHeaders: false,
-// });
-// app.use(limiter);
-
 app.use(express.json());
 app.use(cookieParser());
 
@@ -115,11 +120,14 @@ app.use(async (req, res, next) => {
 // For local development
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   const PORT = config.port || 5000;
-  app.listen(PORT, "0.0.0.0", () => {
+
+  // Start the server
+  app.listen(PORT, "0.0.0.0", async () => {
     logger.info(`🚀 Server chạy trên cổng ${PORT}`);
+    // Also connect to DB immediately for local dev convenience
+    await connectToDatabase();
   });
 }
 
 // Export for Vercel
 module.exports = app;
-

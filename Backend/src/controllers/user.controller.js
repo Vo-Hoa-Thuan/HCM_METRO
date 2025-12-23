@@ -1,7 +1,7 @@
 const User = require('../models/user.model');
 const bcrypt = require("bcryptjs");
 const moment = require('moment');
-const AppError = require('../utils/AppError');
+const AppError = require('../utils/appError');
 
 exports.registerUser = async (req, res, next) => {
     console.log("👉 registerUser called with:", req.body);
