@@ -2,9 +2,14 @@ const moment = require('moment');
 const crypto = require('crypto');
 const axios = require('axios');
 const qs = require('qs');
-const config = require('../config/vnpay.json');
+const config = require('../config/config');
 const { console } = require('inspector');
-const { vnp_TmnCode, vnp_HashSecret, vnp_Url, vnp_ReturnUrl } = config;
+const { tmnCode, hashSecret, url, returnUrl } = config.vnpay;
+// Map new config names to old variable names for compatibility or just rename them in code. Use destructuring renaming
+const vnp_TmnCode = tmnCode;
+const vnp_HashSecret = hashSecret;
+const vnp_Url = url;
+const vnp_ReturnUrl = returnUrl;
 const Order = require('../models/order.model');
 
 
@@ -85,7 +90,7 @@ exports.vnpayReturn = (req, res) => {
 
   const isValid = secureHash === signed;
 
-  const baseRedirectUrl = "http://localhost:5713";
+  const baseRedirectUrl = config.frontendUrl;
 
 
   if (isValid) {

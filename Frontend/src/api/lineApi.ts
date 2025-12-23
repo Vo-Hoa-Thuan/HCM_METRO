@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Key } from "readline";
-
+import { BASE_URL } from '@/config';
 // Định nghĩa URL API từ biến môi trường hoặc mặc định
-const API_URL = import.meta.env.VITE_API_URL || 'https://hcm-metro.onrender.com';
+const API_URL = `${BASE_URL}/lines`;
 
 export interface MetroLine {
   id: Key;
