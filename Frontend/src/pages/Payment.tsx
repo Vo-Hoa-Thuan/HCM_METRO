@@ -15,6 +15,7 @@ import { Fragment } from "react";
 import { createVNPayUrl } from "@/api/VnpayApi";
 import { createPaymentOrder } from "@/api/orderApi";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Payment = () => {
   const location = useLocation();
@@ -33,7 +34,6 @@ const Payment = () => {
     fullName: "",
     phone: "",
     email: "",
-    idNumber: "",
     sub_type: "",
     paymentMethod: "",
   });
@@ -58,18 +58,9 @@ const Payment = () => {
       newErrors.email = "Email không hợp lệ";
     }
 
-    if (!form.idNumber.trim()) {
-      newErrors.idNumber = "Số CMND/CCCD không được để trống";
-    }
+  }; // End of validateForm
 
-    if (!form.sub_type) {
-      newErrors.sub_type = "Vui lòng chọn đối tượng mua vé";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
+  const { user } = useAuth();
   const [ticketData, setTicketData] = useState(null);
 
   useEffect(() => {
@@ -84,6 +75,33 @@ const Payment = () => {
     };
     if (ticketId) fetchTicketDetails();
   }, [ticketId]);
+
+  // Auto-fill user data
+  useEffect(() => {
+    const fillUserData = async () => {
+      // If we have user ID (from AuthContext)
+      if (user && user.id) {
+        const userId = user.id;
+        try {
+          // Import this dynamically or assume it's imported at top
+          const { getUserById } = await import("@/api/userApi");
+          const userData = await getUserById(userId);
+          if (userData) {
+            setForm(prev => ({
+              ...prev,
+              fullName: userData.name || prev.fullName,
+              phone: userData.phoneNumber || prev.phone,
+              email: userData.email || prev.email,
+              // idNumber removed
+            }));
+          }
+        } catch (e) {
+          console.error("Failed to auto-fill user data", e);
+        }
+      }
+    }
+    fillUserData();
+  }, [user]);
 
   if (!localStorage.getItem("accessToken")) {
     return <p>Bạn cần đăng nhập để truy cập trang này.</p>;
@@ -400,17 +418,6 @@ const Payment = () => {
                   placeholder="Nhập địa chỉ email"
                 />
                 {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-              </div>
-
-              {/* Số CMND/CCCD */}
-              <div>
-                <label className="block text-sm mb-1 text-gray-700">Số CMND/CCCD</label>
-                <Input
-                  value={form.idNumber}
-                  onChange={(e) => setForm({ ...form, idNumber: e.target.value })}
-                  placeholder="Nhập số CMND/CCCD"
-                />
-                {errors.idNumber && <p className="text-red-500 text-sm">{errors.idNumber}</p>}
               </div>
 
               {/* Đối tượng mua vé */}
