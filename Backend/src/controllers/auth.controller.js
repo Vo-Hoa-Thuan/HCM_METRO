@@ -17,12 +17,20 @@ exports.login = async (req, res, next) => {
 
     const { user, accessToken, refreshToken } = await authService.loginUser(phoneNumber, password, userAgent, ip);
 
-    // Cookie settings
+    // Cookie settings localhost
+    // res.cookie("refreshToken", refreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    // });
+
+     // Cookie settings render luôn HTTPS
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,        // Render luôn HTTPS
+      sameSite: "None",    // BẮT BUỘC cross-domain
     });
+
 
     res.json({
       status: 'success',
@@ -44,10 +52,16 @@ exports.refreshToken = async (req, res, next) => {
     const oldRefreshToken = req.cookies.refreshToken;
     const { newAccessToken, newRefreshToken } = await authService.refreshAuthToken(oldRefreshToken);
 
+    // res.cookie("refreshToken", newRefreshToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "Lax"
+    // });
+
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Lax"
+      secure: true,
+      sameSite: "None",
     });
 
     res.json({
@@ -66,7 +80,13 @@ exports.logout = async (req, res, next) => {
   try {
     const { refreshToken } = req.cookies;
     await authService.logoutUser(refreshToken);
-    res.clearCookie("refreshToken");
+    // res.clearCookie("refreshToken");
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    });
+
     res.json({ status: 'success', message: "Đăng xuất thành công!" });
   } catch (error) {
     next(error);
@@ -86,7 +106,7 @@ exports.googleCallback = (req, res, next) => {
     if (err || !user) {
       console.error("Lỗi khi xác thực Google:", err);
       // Determine frontend URL from config/env or hardcode if needed
-      return res.redirect(`${config.localhost}/login?error=google_auth_failed`);
+      return res.redirect(`${process.env.LOCALHOST}/login?error=google_auth_failed`);
     }
 
     try {
@@ -95,10 +115,16 @@ exports.googleCallback = (req, res, next) => {
 
       const { accessToken, refreshToken } = await authService.loginWithGoogle(user, userAgent, ip);
 
+      // res.cookie("refreshToken", refreshToken, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV === "production",
+      //   sameSite: "Lax"
+      // });
+
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Lax"
+        secure: true,
+        sameSite: "None",
       });
 
       console.log("🔐 Google Login thành công:", { accessToken, refreshToken });
@@ -117,7 +143,8 @@ exports.googleCallback = (req, res, next) => {
 
 exports.getUserSessions = async (req, res) => {
   try {
-    const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
+    // const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({

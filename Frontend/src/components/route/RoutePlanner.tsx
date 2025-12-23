@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { MapPin, ArrowRight, Clock, Calendar, RefreshCw, Wallet, Train, DollarSign, Ticket, Info, ShoppingCart } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import { calculateETA, RealTimeTrain } from '@/utils/etaCalculator';
 import type { RouteResponse } from '@/api/lineApi';
 
 const RoutePlanner = () => {
+  const [searchParamsUrl] = useSearchParams();
   const [origin, setOrigin] = useState<string>('');
   const [destination, setDestination] = useState<string>('');
   const [time, setTime] = useState<string>('now');
@@ -38,6 +40,56 @@ const RoutePlanner = () => {
   const [realTimeInfo, setRealTimeInfo] = useState<Record<string, { nextTrainTime: number, crowdLevel: string, delayMinutes: number }>>({});
   const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(true);
   const [activeTrains, setActiveTrains] = useState<RealTimeTrain[]>([]);
+
+  // Initialize from sessionStorage or URL params
+  useEffect(() => {
+    // Priority: URL params > sessionStorage > default
+    const originParam = searchParamsUrl.get('origin');
+    const destParam = searchParamsUrl.get('destination');
+
+    if (originParam && destParam) {
+      setOrigin(originParam);
+      setDestination(destParam);
+      setSearchParams({ origin: originParam, destination: destParam });
+      setShowResults(true);
+    } else {
+      // Try restoring from sessionStorage if no URL params
+      const savedOrigin = sessionStorage.getItem('planner_origin');
+      const savedDest = sessionStorage.getItem('planner_destination');
+      const savedRoute = sessionStorage.getItem('planner_routeData');
+
+      if (savedOrigin) setOrigin(savedOrigin);
+      if (savedDest) setDestination(savedDest);
+
+      // If we have a saved route and aligned inputs, show it
+      if (savedRoute && savedOrigin && savedDest) {
+        // We can re-trigger search or just pre-fill. 
+        // For correct restoration including fare/etc, we should probably set searchParams to trigger the query
+        setSearchParams({ origin: savedOrigin, destination: savedDest });
+        // Optionally we could cache the exact result but React Query might handle it if we set params
+        setShowResults(true);
+      }
+    }
+  }, [searchParamsUrl]);
+
+  // Persist state changes
+  useEffect(() => {
+    if (origin) sessionStorage.setItem('planner_origin', origin);
+  }, [origin]);
+
+  useEffect(() => {
+    if (destination) sessionStorage.setItem('planner_destination', destination);
+  }, [destination]);
+
+  // We rely on searchParams state to drive the UI 'result view'
+  useEffect(() => {
+    // If we have searchParams, it means a search was successful/active.
+    // We can use this as a flag to "restore" the view state.
+    // But actual pattern here relies on useQuery caching or re-fetching.
+    if (searchParams) {
+      sessionStorage.setItem('planner_routeData', 'true'); // marker to restore
+    }
+  }, [searchParams]);
 
   // Fetch stations
   const { data: stationsData, error: stationsError } = useQuery({
@@ -150,6 +202,8 @@ const RoutePlanner = () => {
       }
       setSearchParams({ origin, destination });
       setShowResults(true);
+      // Update URL without navigation to keep history clean/shareable
+      window.history.replaceState(null, '', `?origin=${origin}&destination=${destination}`);
     } else {
       setIsAlertVisible(true);
       toast({

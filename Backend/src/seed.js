@@ -8,7 +8,8 @@ const Ticket = require('./models/ticket.model');
 const News = require('./models/new.model');
 const Progress = require('./models/progress.model');
 
-dotenv.config();
+const path = require('path');
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const fs = require('fs');
 const logFile = 'seed_log.txt';
@@ -43,20 +44,20 @@ const seedData = async () => {
 
         // --- LINE 1: BEN THANH - SUOI TIEN (Operational/Testing) ---
         const stationsLine1 = [
-            { name: "Ben Thanh", nameVi: "Bến Thành", address: "District 1", coordinates: [106.6983, 10.7721], isUnderground: true, isInterchange: true, status: 'operational' },
-            { name: "Opera House", nameVi: "Nhà Hát Thành Phố", address: "District 1", coordinates: [106.7031, 10.7758], isUnderground: true, status: 'operational' },
-            { name: "Ba Son", nameVi: "Ba Son", address: "District 1", coordinates: [106.7071, 10.7836], isUnderground: true, status: 'operational' },
-            { name: "Van Thanh", nameVi: "Văn Thánh", address: "Binh Thanh", coordinates: [106.7163, 10.7944], isUnderground: false, status: 'operational' },
-            { name: "Tan Cang", nameVi: "Tân Cảng", address: "Binh Thanh", coordinates: [106.7214, 10.7984], isUnderground: false, status: 'operational' },
-            { name: "Thao Dien", nameVi: "Thảo Điền", address: "Thu Duc City", coordinates: [106.7328, 10.8033], isUnderground: false, status: 'operational' },
-            { name: "An Phu", nameVi: "An Phú", address: "Thu Duc City", coordinates: [106.7423, 10.8028], isUnderground: false, status: 'operational' },
-            { name: "Rach Chiec", nameVi: "Rạch Chiếc", address: "Thu Duc City", coordinates: [106.7561, 10.8122], isUnderground: false, status: 'operational' },
-            { name: "Phuoc Long", nameVi: "Phước Long", address: "Thu Duc City", coordinates: [106.7634, 10.8229], isUnderground: false, status: 'operational' },
-            { name: "Binh Thai", nameVi: "Bình Thái", address: "Thu Duc City", coordinates: [106.7695, 10.8315], isUnderground: false, status: 'operational' },
-            { name: "Thu Duc", nameVi: "Thủ Đức", address: "Thu Duc City", coordinates: [106.7766, 10.8466], isUnderground: false, status: 'operational' },
-            { name: "High Tech Park", nameVi: "Khu Công Nghệ Cao", address: "Thu Duc City", coordinates: [106.7951, 10.8643], isUnderground: false, status: 'operational' },
-            { name: "Suoi Tien", nameVi: "Suối Tiên", address: "Thu Duc City", coordinates: [106.8024, 10.8732], isUnderground: false, status: 'operational' },
-            { name: "Long Binh", nameVi: "Long Bình", address: "Thu Duc City", coordinates: [106.8173, 10.8878], isUnderground: false, isDepot: true, status: 'operational' }
+            { name: "Ben Thanh", nameVi: "Bến Thành", address: "District 1", coordinates: [106.698471, 10.773237], isUnderground: true, isInterchange: true, status: 'operational' },
+            { name: "Opera House", nameVi: "Nhà Hát Thành Phố", address: "District 1", coordinates: [106.701685, 10.776830], isUnderground: true, status: 'operational' },
+            { name: "Ba Son", nameVi: "Ba Son", address: "District 1", coordinates: [106.705928, 10.786654], isUnderground: true, status: 'operational' },
+            { name: "Van Thanh", nameVi: "Văn Thánh", address: "Binh Thanh", coordinates: [106.714511, 10.801131], isUnderground: false, status: 'operational' },
+            { name: "Tan Cang", nameVi: "Tân Cảng", address: "Binh Thanh", coordinates: [106.719940, 10.803595], isUnderground: false, status: 'operational' },
+            { name: "Thao Dien", nameVi: "Thảo Điền", address: "Thu Duc City", coordinates: [106.730584, 10.803864], isUnderground: false, status: 'operational' },
+            { name: "An Phu", nameVi: "An Phú", address: "Thu Duc City", coordinates: [106.747449, 10.803864], isUnderground: false, status: 'operational' },
+            { name: "Rach Chiec", nameVi: "Rạch Chiếc", address: "Thu Duc City", coordinates: [106.766760, 10.803864], isUnderground: false, status: 'operational' },
+            { name: "Phuoc Long", nameVi: "Phước Long", address: "Thu Duc City", coordinates: [106.770554, 10.814576], isUnderground: false, status: 'operational' },
+            { name: "Binh Thai", nameVi: "Bình Thái", address: "Thu Duc City", coordinates: [106.776647, 10.824858], isUnderground: false, status: 'operational' },
+            { name: "Thu Duc", nameVi: "Thủ Đức", address: "Thu Duc City", coordinates: [106.781368, 10.832131], isUnderground: false, status: 'operational' },
+            { name: "High Tech Park", nameVi: "Khu Công Nghệ Cao", address: "Thu Duc City", coordinates: [106.789179, 10.840453], isUnderground: false, status: 'operational' },
+            { name: "Suoi Tien", nameVi: "Suối Tiên", address: "Thu Duc City", coordinates: [106.796388, 10.847725], isUnderground: false, status: 'operational' },
+            { name: "Long Binh", nameVi: "Long Bình", address: "Thu Duc City", coordinates: [106.802868, 10.853440], isUnderground: false, isDepot: true, status: 'operational' }
         ];
 
         // --- LINE 2: BEN THANH - THAM LUONG (Construction) ---
@@ -153,27 +154,27 @@ const seedData = async () => {
 
         const linesData = [
             {
-                name: "Line 1: Ben Thanh - Suoi Tien",
-                color: "#FF0000", // Red
+                name: "Tuyến số 1: Bến Thành - Suối Tiên",
+                color: "#ff3b30", // Red
                 status: 'operational',
                 openingDate: "2024-07-01",
                 length: 19.7,
                 stations: createdStations.line1.map((s, i) => ({ station: s._id, order: i + 1 })),
-                frequency: { peakHours: "5 mins", offPeakHours: "10 mins" },
-                operatingHours: { weekday: "05:00 - 23:00", weekend: "05:00 - 23:30" }
+                frequency: { peakHours: "5 phút", offPeakHours: "10 phút" },
+                operatingHours: { weekday: "05:00 - 22:00", weekend: "05:00 - 23:00" }
             },
             {
-                name: "Line 2: Ben Thanh - Tham Luong",
-                color: "#FFD700", // Gold/Yellow
+                name: "Tuyến số 2: Bến Thành - Tham Lương",
+                color: "#ffcc00", // Gold/Yellow
                 status: 'construction',
                 openingDate: "2030-01-01",
                 length: 11.0,
                 stations: [createdStations.line1[0], ...createdStations.line2].map((s, i) => ({ station: s._id, order: i + 1 })), // Starts at Ben Thanh
-                frequency: { peakHours: "TBD", offPeakHours: "TBD" }
+                frequency: { peakHours: "Chưa xác định", offPeakHours: "Chưa xác định" }
             },
             {
-                name: "Line 3A: Ben Thanh - Tan Kien",
-                color: "#0000FF", // Blue
+                name: "Tuyến số 3A: Bến Thành - Tân Kiên",
+                color: "#007aff", // Blue
                 status: 'planned',
                 openingDate: "TBD",
                 length: 19.8,
@@ -181,8 +182,8 @@ const seedData = async () => {
                 frequency: { peakHours: "TBD", offPeakHours: "TBD" }
             },
             {
-                name: "Line 4: Thanh Xuan - Hiep Phuoc",
-                color: "#008000", // Green
+                name: "Tuyến số 4: Thạnh Xuân - Hiệp Phước",
+                color: "#34c759", // Green
                 status: 'planned',
                 openingDate: "TBD",
                 length: 36.2,
@@ -190,8 +191,8 @@ const seedData = async () => {
                 frequency: { peakHours: "TBD", offPeakHours: "TBD" }
             },
             {
-                name: "Line 5: Saigon Bridge - Can Giuoc",
-                color: "#800080", // Purple
+                name: "Tuyến số 5: Cầu Sài Gòn - Cần Giuộc",
+                color: "#af52de", // Purple
                 status: 'planned',
                 openingDate: "TBD",
                 length: 23.4,
@@ -210,10 +211,10 @@ const seedData = async () => {
 
         // Tickets (System-wide)
         const ticketsData = [
-            { category: 'luot', sub_type: 'thuong', name: 'Vé Lượt (Tiêu chuẩn)', price: 12000, description: 'Vé một chiều.', status: 'active' },
-            { category: 'ngay', sub_type: 'thuong', name: 'Vé 1 Ngày', price: 40000, description: 'Đi lại không giới hạn trong ngày.', status: 'active', trip_limit: 999 },
-            { category: 'thang', sub_type: 'thuong', name: 'Vé Tháng (Tất cả các tuyến)', price: 260000, description: 'Đi lại thoải mái trong 30 ngày trên mọi tuyến vận hành.', status: 'active' },
-            { category: 'nhom', sub_type: 'thuong', name: 'Vé Nhóm (3+ người)', price: 10000, description: 'Giá ưu đãi cho nhóm trên 3 người.', status: 'active' }
+            { category: 'luot', sub_type: 'thuong', name: 'Vé Lượt (Tiêu chuẩn)', price: 12000, description: 'Vé một chiều, có giá trị trong ngày.', status: 'active' },
+            { category: 'ngay', sub_type: 'thuong', name: 'Vé 1 Ngày', price: 40000, description: 'Đi lại không giới hạn trong ngày đăng ký.', status: 'active', trip_limit: 999 },
+            { category: 'thang', sub_type: 'thuong', name: 'Vé Tháng', price: 260000, description: 'Đi lại thoải mái trong 30 ngày.', status: 'active' },
+            { category: 'nhom', sub_type: 'thuong', name: 'Vé Nhóm (3+ người)', price: 10000, description: 'Giá vé ưu đãi cho nhóm đông người.', status: 'active' }
         ];
         await Ticket.insertMany(ticketsData);
         log("✅ Tickets created");
@@ -221,28 +222,40 @@ const seedData = async () => {
         // News
         const newsData = [
             {
-                title: "Tuyến Metro số 1 chính thức vận hành thương mại",
-                summary: "Sau nhiều năm chờ đợi, người dân TP.HCM đã có thể trải nghiệm tuyến metro đầu tiên.",
-                content: "Sáng nay, chuyến tàu đầu tiên xuất phát từ ga Bến Thành...",
+                title: "Vận hành thử nghiệm toàn tuyến Metro số 1",
+                summary: "MAUR tổ chức chạy thử nghiệm tàu trên toàn tuyến Bến Thành - Suối Tiên với 100% công suất thiết kế.",
+                content: "Sáng nay, Ban Quản lý Đường sắt đô thị (MAUR) đã tổ chức buổi chạy thử nghiệm... Việc thử nghiệm nhằm đánh giá kỹ thuật, độ an toàn và khả năng tích hợp của hệ thống...",
                 author: "Ban Quản lý",
                 category: "announcement",
-                tags: ["line1", "hot"]
+                tags: ["line1", "testing", "hot"],
+                image: "https://khpt.1cdn.vn/2025/03/09/metro1.jpeg"
             },
             {
-                title: "Khởi công giải phóng mặt bằng Tuyến số 2",
-                summary: "Quận 3 và Tân Bình đẩy nhanh tiến độ bàn giao mặt bằng cho dự án Metro số 2.",
-                content: "Dự kiến việc di dời hạ tầng kỹ thuật sẽ hoàn tất trong năm nay...",
+                title: "Cập nhật tiến độ giải phóng mặt bằng Tuyến số 2",
+                summary: "Quận 3 cam kết bàn giao 100% mặt bằng sạch trong quý 3 năm nay.",
+                content: "Công tác giải phóng mặt bằng cho dự án Metro số 2 (Bến Thành - Tham Lương) đang được đẩy nhanh...",
                 author: "Tin Tức Metro",
                 category: "update",
-                tags: ["line2", "construction"]
+                tags: ["line2", "construction"],
+                image: "https://khpt.1cdn.vn/thumbs/900x600/2025/10/07/screen-shot-2025-10-07-at-10.35.19-am.png"
             },
             {
-                title: "Quy hoạch tuyến Metro số 4 dọc trục Bắc Nam",
-                summary: "Tuyến số 4 là tuyến dài nhất, đi qua các quận Gò Vấp, Phú Nhuận, Quận 1, Quận 4, Quận 7.",
-                content: "UBND TP vừa phê duyệt điều chỉnh quy hoạch...",
+                title: "Đề xuất giá vé metro chính thức",
+                summary: "Sở GTVT trình UBND TP.HCM phương án giá vé mới, ưu đãi cho học sinh, sinh viên.",
+                content: "Theo đề xuất, giá vé lượt thấp nhất là 6.000 đồng, cao nhất là 20.000 đồng tùy cự ly...",
                 author: "Sở GTVT",
                 category: "update",
-                tags: ["line4", "planning"]
+                tags: ["ticket", "policy"],
+                image: "https://photo.znews.vn/w660/Uploaded/zdhwqmjwq/2024_12_18/thumb_znews.jpg"
+            },
+            {
+                title: "Hệ thống bán vé tự động được lắp đặt tại các nhà ga",
+                summary: "Hơn 100 máy bán vé tự động hiện đại đã được lắp đặt tại 14 nhà ga của Tuyến số 1.",
+                content: "Hành khách có thể mua vé bằng tiền mặt, thẻ ngân hàng hoặc ví điện tử...",
+                author: "Ban Quản lý",
+                category: "promotion",
+                tags: ["service", "tech"],
+                image: "https://maisonoffice.vn/wp-content/uploads/2025/01/2-cac-tuyen-metro-tphcm-van-hanh-ca-duoi-long-dat-va-tren-cao.jpg"
             }
         ];
         await News.insertMany(newsData);
@@ -250,41 +263,52 @@ const seedData = async () => {
 
         // Progress
         await Progress.create({
-            title: "Hoàn thiện Line 1",
-            description: "Các hạng mục cuối cùng của Line 1.",
+            title: "Hoàn thiện kiến trúc nhà ga",
+            description: "Hoàn thiện trang trí nội thất, lắp đặt thiết bị tại các nhà ga trên cao và ngầm.",
             lineId: createdLines[0]._id, // Line 1
-            startDate: new Date("2024-01-01"),
-            estimatedCompletionDate: new Date("2024-07-01"),
+            startDate: new Date("2023-01-01"),
+            estimatedCompletionDate: new Date("2024-06-30"),
             status: "completed",
             completionPercentage: 100,
             location: "Toàn tuyến",
-            updates: [{ description: "Khai trương", percentageChange: 0, date: new Date() }]
+            updates: [{ description: "Hoàn tất lắp đặt mái che ga Tân Cảng", percentageChange: 0, date: new Date() }]
         });
 
         await Progress.create({
-            title: "Giải phóng mặt bằng Line 2",
-            description: "Công tác đền bù và giải tỏa cho dự án Bến Thành - Tham Lương.",
-            lineId: createdLines[1]._id, // Line 2
-            startDate: new Date("2023-01-01"),
-            estimatedCompletionDate: new Date("2025-12-31"),
+            title: "Đánh giá an toàn hệ thống (Safety Audit)",
+            description: "Tư vấn độc lập đánh giá an toàn hệ thống trước khi vận hành thương mại.",
+            lineId: createdLines[0]._id,
+            startDate: new Date("2024-04-01"),
+            estimatedCompletionDate: new Date("2024-07-01"),
             status: "in-progress",
-            completionPercentage: 85,
-            location: "Quận 3, Tân Bình",
-            updates: [{ description: "Bàn giao mặt bằng CMT8", percentageChange: 5, date: new Date() }]
+            completionPercentage: 80,
+            location: "Depot Long Bình",
+            updates: [{ description: "Hoàn thành thử nghiệm động", percentageChange: 10, date: new Date() }]
+        });
+
+        await Progress.create({
+            title: "Di dời hạ tầng kỹ thuật Line 2",
+            description: "Di dời hệ thống điện, nước, viễn thông để chuẩn bị khởi công.",
+            lineId: createdLines[1]._id, // Line 2
+            startDate: new Date("2023-06-01"),
+            estimatedCompletionDate: new Date("2025-06-01"),
+            status: "in-progress",
+            completionPercentage: 45,
+            location: "Dọc trục đường Cách Mạng Tháng 8",
+            updates: [{ description: "Bắt đầu di dời cáp ngầm tại ngã tư Bảy Hiền", percentageChange: 5, date: new Date() }]
         });
         log("✅ Progress entries created");
 
 
         // ==========================================
-        // 4. TRAINS & SCHEDULES (Active Lines Only)
+        // 4. TRAINS & SCHEDULES (2 Trains Only)
         // ==========================================
 
-        // Only generate trains for Line 1 as it's the only 'operational' or 'near operational' one in this context
-        // for realistic simulation.
-        const line1Obj = createdLines.find(l => l.name.includes("Line 1"));
+        const line1Obj = createdLines.find(l => l.name.includes("Tuyến số 1"));
         if (line1Obj) {
+            // Create exactly 2 trains
             const train1 = await Train.create({
-                trainNumber: "TRAIN-L1-01",
+                trainNumber: "TRAIN-01",
                 line: line1Obj._id,
                 status: 'active',
                 currentStation: createdStations.line1[0]._id,
@@ -292,58 +316,107 @@ const seedData = async () => {
             });
 
             const train2 = await Train.create({
-                trainNumber: "TRAIN-L1-02",
+                trainNumber: "TRAIN-02",
                 line: line1Obj._id,
                 status: 'active',
-                currentStation: createdStations.line1[5]._id,
-                nextStation: createdStations.line1[6]._id
+                currentStation: createdStations.line1[13]._id, // Start at end
+                nextStation: createdStations.line1[12]._id
             });
 
-            log("Created Trains for Line 1.");
-
-            // Create schedules relative to CURRENT time for simulation testing
-            const baseTime = new Date();
-            baseTime.setMinutes(baseTime.getMinutes() - 30); // Start schedules 30 mins ago
+            log("Created 2 Trains for Line 1.");
 
             const schedules = [];
+            const today = new Date();
+            // Start of operation today
+            const startTime = new Date(today);
+            startTime.setHours(0, 0, 0, 0); // 00:00 - Start of day
 
-            // Function to generate a full trip for a train
-            const generateTrip = (trainId, startDelayMinutes) => {
-                for (let i = 0; i < createdStations.line1.length; i++) {
-                    const travelTime = i * 3; // 3 mins per station
-                    const arr = new Date(baseTime.getTime() + (startDelayMinutes + travelTime) * 60000);
-                    const dep = new Date(arr.getTime() + 1 * 60000); // 1 min stop
+            // End of operation today
+            const endTime = new Date(today);
+            endTime.setHours(23, 59, 59, 999); // 23:59 - End of day
 
-                    schedules.push({
+            // Helper to create a one-way trip schedule
+            const createOneWayTrip = (trainId, startStationIndex, endStationIndex, departureTime) => {
+                let currentTime = new Date(departureTime);
+                const isForward = startStationIndex < endStationIndex;
+                const stationCount = createdStations.line1.length;
+
+                // Duration between stations (mins)
+                const travelTimePerStation = 3;
+                const stopTime = 1;
+
+                const tripSchedules = [];
+
+                let i = startStationIndex;
+                while (isForward ? i <= endStationIndex : i >= endStationIndex) {
+                    const station = createdStations.line1[i];
+
+                    // Arrival time is currentTime
+                    // Departure time is currentTime + stopTime
+                    const arr = new Date(currentTime);
+                    const dep = new Date(currentTime.getTime() + stopTime * 60000);
+
+                    tripSchedules.push({
                         line: line1Obj._id,
                         train: trainId,
-                        station: createdStations.line1[i]._id,
+                        station: station._id,
                         order: i + 1,
                         arrivalTime: arr,
                         departureTime: dep,
                         status: 'scheduled'
                     });
+
+                    // Advance time for next station
+                    currentTime = new Date(dep.getTime() + travelTimePerStation * 60000);
+
+                    if (isForward) i++; else i--;
                 }
+                return { schedules: tripSchedules, endTime: currentTime };
             };
 
-            // Schedule for Train 1 (Just started)
-            generateTrip(train1._id, 0);
+            // Generate daily schedule for Train 1 (Starts at Ben Thanh -> Suoi Tien -> Ben Thanh ...)
+            let t1Time = new Date(startTime);
+            while (t1Time < endTime) {
+                // Forward: 0 -> 13
+                const trip1 = createOneWayTrip(train1._id, 0, 13, t1Time);
+                schedules.push(...trip1.schedules);
 
-            // Schedule for Train 2 (Starts 15 mins later)
-            generateTrip(train2._id, 15);
+                // Turnaround time at Suoi Tien
+                t1Time = new Date(trip1.endTime.getTime() + 10 * 60000);
 
-            // Add a 3rd train for more activity
-            const train3 = await Train.create({
-                trainNumber: "TRAIN-L1-03",
-                line: line1Obj._id,
-                status: 'active',
-                currentStation: createdStations.line1[0]._id, // will be autocalc
-                nextStation: createdStations.line1[1]._id
-            });
-            generateTrip(train3._id, 30); // Starts 30 mins later (around "now")
+                if (t1Time >= endTime) break;
+
+                // Backward: 13 -> 0
+                const trip2 = createOneWayTrip(train1._id, 13, 0, t1Time);
+                schedules.push(...trip2.schedules);
+
+                // Turnaround time at Ben Thanh
+                t1Time = new Date(trip2.endTime.getTime() + 10 * 60000);
+            }
+
+            // Generate daily schedule for Train 2 (Starts at Suoi Tien -> Ben Thanh -> Suoi Tien ...)
+            // Offset start slightly or start from other end
+            let t2Time = new Date(startTime);
+            while (t2Time < endTime) {
+                // Backward: 13 -> 0
+                const trip1 = createOneWayTrip(train2._id, 13, 0, t2Time);
+                schedules.push(...trip1.schedules);
+
+                // Turnaround time at Ben Thanh
+                t2Time = new Date(trip1.endTime.getTime() + 10 * 60000);
+
+                if (t2Time >= endTime) break;
+
+                // Forward: 0 -> 13
+                const trip2 = createOneWayTrip(train2._id, 0, 13, t2Time);
+                schedules.push(...trip2.schedules);
+
+                // Turnaround time at Suoi Tien
+                t2Time = new Date(trip2.endTime.getTime() + 10 * 60000);
+            }
 
             await Schedule.insertMany(schedules);
-            log("Created Schedules for Line 1.");
+            log(`Created ${schedules.length} schedule entries.`);
         }
 
         log("🎉 FULL SEEDING COMPLETED!");

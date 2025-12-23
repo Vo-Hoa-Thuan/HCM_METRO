@@ -8,5 +8,5 @@ module.exports = {
     refreshSecret: process.env.REFRESH_SECRET,
     sessionSecret: process.env.SESSION_SECRET,
     nodeEnv: process.env.NODE_ENV || 'development',
-    localhost: process.env.LOCALHOST || 'https://hcm-metro.vercel.app'
+    localhost: process.env.LOCALHOST || 'https://hcm-metro.onrender.com'
 };

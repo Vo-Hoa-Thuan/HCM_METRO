@@ -12,5 +12,5 @@ Created 5 Metro Lines.
 ✅ News created
 ✅ Progress entries created
 Created 2 Trains for Line 1.
-Created 616 schedule entries.
+Created 448 schedule entries.
 🎉 FULL SEEDING COMPLETED!

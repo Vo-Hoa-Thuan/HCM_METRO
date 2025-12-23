@@ -18,7 +18,6 @@ import News from '@/pages/News';
 import PaymentSuccessPage from '@/pages/VN_Pay_payment/payment-success';
 import PaymentFailPage from '@/pages/VN_Pay_payment/payment-fail';
 import TicketHistory from '@/pages/TicketHistory';
-import RouteExplorer from '@/pages/RouteExplorer';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 export const router = createBrowserRouter([
@@ -38,10 +37,7 @@ export const router = createBrowserRouter([
         path: '/routes',
         element: <RoutesPage />
     },
-    {
-        path: '/route-explorer',
-        element: <RouteExplorer />
-    },
+
     {
         path: '/tickets',
         element: <Tickets />
