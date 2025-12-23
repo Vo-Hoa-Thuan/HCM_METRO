@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useAuth } from "@/contexts/AuthContext";
+import { BASE_URL } from '@/config';
 
-const API_URL = "http://localhost:5000/order";
+const API_URL = `${BASE_URL}/order`;
 
 export const createPaymentOrder = async (orderForm: any, token: string) => {
   try {

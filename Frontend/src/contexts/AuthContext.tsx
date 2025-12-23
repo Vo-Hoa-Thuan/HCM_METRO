@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { toast } from '@/hooks/use-toast';
+import { BASE_URL } from '@/config';
 import axios from "axios";
 
 const AuthContext = createContext(null);
@@ -23,7 +25,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("role", role);
       localStorage.setItem("userId", id);
 
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token} `;
       setUser({
         token,
         name: decodeURIComponent(name),
@@ -40,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       const storedId = localStorage.getItem("userId");
 
       if (storedToken && storedName && storedRole && storedId) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+        axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken} `;
         setUser({
           token: storedToken,
           name: storedName,
@@ -62,7 +64,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      const response = await axios.post("http://localhost:5000/auth/refresh", {}, { withCredentials: true });
+      const response = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
       const { data } = response;
       const authData = data.data || data;
 
@@ -71,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         // Note: refresh endpoint doesn't return name/role/id usually, so be careful updating these unless backend sends them
         // My new backend refresh only returns accessToken and refreshToken
 
-        axios.defaults.headers.common["Authorization"] = `Bearer ${authData.accessToken}`;
+        axios.defaults.headers.common["Authorization"] = `Bearer ${authData.accessToken} `;
 
         setUser((prev) => ({
           ...prev,
@@ -94,7 +96,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (phoneNumber, password) => {
     try {
-      const response = await axios.post("http://localhost:5000/auth/login", { phoneNumber, password }, { withCredentials: true });
+      const response = await axios.post(`${BASE_URL}/auth/login`, { phoneNumber, password }, { withCredentials: true });
       const { data } = response;
 
       // New backend sends { status: 'success', data: { accessToken, ... } }
@@ -111,7 +113,7 @@ export const AuthProvider = ({ children }) => {
 
         const accessToken = localStorage.getItem("accessToken");
         if (accessToken) {
-          axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+          axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken} `;
         }
 
         setUser({
@@ -131,12 +133,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const loginWithGoogle = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${BASE_URL}/auth/google`;
   };
 
   const logout = async () => {
     try {
-      await axios.post("http://localhost:5000/auth/logout", {}, { withCredentials: true });
+      await axios.post(`${BASE_URL}/auth/logout`, {}, { withCredentials: true });
     } catch (error) {
       console.error("Lỗi đăng xuất:", error);
     }

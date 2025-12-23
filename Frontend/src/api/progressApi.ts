@@ -1,7 +1,7 @@
-
 import axios from "axios";
+import { BASE_URL } from '@/config';
 
-const API_URL = "http://localhost:5000/progress";
+const API_URL = `${BASE_URL}/progress`;
 
 const api = axios.create({
   baseURL: API_URL,

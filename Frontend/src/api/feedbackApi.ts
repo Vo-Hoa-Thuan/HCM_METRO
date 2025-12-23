@@ -1,7 +1,8 @@
 import axios from "axios";
 import { ReactNode } from "react";
+import { BASE_URL } from '@/config';
 
-const API_URL = "http://localhost:5000/feedbacks";
+const API_URL = `${BASE_URL}/feedbacks`;
 
 // Interface định nghĩa dữ liệu thống kê
 export interface Feedback {
@@ -93,7 +94,7 @@ export const submitFeedback = async (feedbackData: Omit<Feedback, 'date' | '_id'
 
 export const updateFeedback = async (id: string, feedbackData: Partial<Feedback>) => {
   try {
-    const response = await api.put(`/${id}`, feedbackData);
+    const response = await axios.post(`${API_URL}`, feedbackData);
     return response.data;
   } catch (error) {
     console.error('Error updating feedback:', error);

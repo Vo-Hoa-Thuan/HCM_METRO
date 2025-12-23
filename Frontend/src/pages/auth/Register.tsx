@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "@/api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
+import { BASE_URL } from '@/config';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,7 +62,7 @@ const Register = () => {
   }, [generalError, form]);
 
 
-  // const API_URL = "http://localhost:5000/users/register"; // Using axiosInstance base URL
+  // const API_URL = `${BASE_URL}/users/register`; // Using axiosInstance base URL
 
   const handleRegister = async () => {
     setGeneralError(null);
@@ -87,7 +88,7 @@ const Register = () => {
   const toggleShowPassword = () => setShowPassword(!showPassword);
 
   const handleGoogleLogin = async () => {
-    window.location.href = "http://localhost:5000/auth/google?prompt=select_account&access_type=offline";
+    window.location.href = `${BASE_URL}/auth/google?prompt=select_account&access_type=offline`;
   };
 
   return (

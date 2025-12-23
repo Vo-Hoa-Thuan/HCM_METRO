@@ -56,13 +56,30 @@ app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
 
+const allowedOrigins = [
+  "http://localhost:5713",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://hcm-metro.vercel.app"
+];
+
 app.use(
   cors({
-    origin: config.localhost,
+    origin: function (origin, callback) {
+      // Cho phép Postman / server-to-server
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 
 app.use(
   session({

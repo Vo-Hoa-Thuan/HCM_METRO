@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { BASE_URL } from '@/config';
 import { format } from "date-fns";
 import {
     Table,
@@ -28,7 +29,7 @@ import type { Ticket } from "@/types/ticket";
 import axios from "axios";
 import { motion } from "framer-motion";
 
-const API_URL = "http://localhost:5000/order/history";
+const API_URL = `${BASE_URL}/order/history`;
 
 export default function TicketHistory() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -50,7 +51,7 @@ export default function TicketHistory() {
                 console.log("Đang gửi request với token:", user.token);
                 const response = await axios.get(API_URL, {
                     headers: {
-                        'Authorization': `Bearer ${user.token}`,
+                        'Authorization': `Bearer ${user.token} `,
                         'Content-Type': 'application/json'
                     }
                 });
@@ -281,10 +282,10 @@ export default function TicketHistory() {
 
                                                     <div className="flex flex-col items-end justify-between">
                                                         <span
-                                                            className={`px-4 py-2 rounded-full text-sm font-medium ${ticket.status === "active"
+                                                            className={`px - 4 py - 2 rounded - full text - sm font - medium ${ticket.status === "active"
                                                                 ? "bg-green-100 text-green-800"
                                                                 : "bg-red-100 text-red-800"
-                                                                }`}
+                                                                } `}
                                                         >
                                                             {ticket.status === "active" ? "Còn hiệu lực" : "Hết hiệu lực"}
                                                         </span>
@@ -324,10 +325,10 @@ export default function TicketHistory() {
                                         <div className="space-y-2">
                                             <p className="text-sm text-gray-500">Trạng thái</p>
                                             <span
-                                                className={`inline-block px-3 py-1 rounded-full text-sm ${selectedTicket.status === "active"
+                                                className={`inline - block px - 3 py - 1 rounded - full text - sm ${selectedTicket.status === "active"
                                                     ? "bg-green-100 text-green-800"
                                                     : "bg-red-100 text-red-800"
-                                                    }`}
+                                                    } `}
                                             >
                                                 {selectedTicket.status === "active" ? "Còn hiệu lực" : "Hết hiệu lực"}
                                             </span>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Định nghĩa URL API từ biến môi trường hoặc mặc định
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/';
+const API_URL = import.meta.env.VITE_API_URL || 'https://hcm-metro.onrender.com/';
 
 // Định nghĩa các kiểu dữ liệu cho route planning
 export interface RouteStep {

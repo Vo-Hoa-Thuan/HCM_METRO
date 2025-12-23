@@ -1,9 +1,9 @@
 import axios from "axios";
+import { BASE_URL } from '@/config';
+const API_URL = `${BASE_URL}/vnpay`;
 
-const API_URL = "http://localhost:5000/vnpay" 
 
-
-export const createVNPayUrl  = async (amount: number, orderId: string) => {
+export const createVNPayUrl = async (amount: number, orderId: string) => {
   try {
     const response = await axios.post(`${API_URL}/create_payment_url`, {
       amount,

@@ -1,7 +1,7 @@
-
 import axios from "axios";
+import { BASE_URL } from '@/config';
 
-const API_URL = "http://localhost:5000/news";
+const API_URL = `${BASE_URL}/news`;
 
 // Tạo instance của axios với cấu hình mặc định
 const api = axios.create({
@@ -47,7 +47,7 @@ export const getAllNews = async (params = {}) => {
 
 export const getNewsById = async (id: string) => {
   try {
-    const response = await api.get(`/${id}`);
+    const response = await axios.get(`${API_URL}/featured`);
     return response.data;
   } catch (error) {
     console.error('Error fetching news item:', error);

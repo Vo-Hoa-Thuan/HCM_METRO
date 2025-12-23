@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/tickets";
+const API_URL = import.meta.env.VITE_API_URL || "https://hcm-metro.onrender.com/tickets";
 
 
 export interface Tickets {
