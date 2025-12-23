@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import api from "@/api/axiosInstance";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { Home, Smartphone, Key, User } from "lucide-react";
+import { Home, Smartphone, Key, User, EyeOff, Eye } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,9 +39,10 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const Register = () => {
   const navigate = useNavigate();
   const { registerWithPhone, registerWithGoogle, loading } = useAuth();
-  
+
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [otp, setOtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [generalError, setGeneralError] = useState("");
 
   const form = useForm<RegisterFormValues>({
@@ -59,31 +61,30 @@ const Register = () => {
   }, [generalError, form]);
 
 
-  const API_URL = "http://localhost:5000/users/register";
+  // const API_URL = "http://localhost:5000/users/register"; // Using axiosInstance base URL
 
   const handleRegister = async () => {
     setGeneralError(null);
     try {
       const { phone, name, password } = form.getValues();
-  
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: phone, name, password }),
+
+      await api.post('/users/register', { // Using api instance
+        phoneNumber: phone,
+        name,
+        password
       });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.error || "Đăng ký thất bại");
-      }
-  
+
+      // axios throws on error status, so if we get here, it's success
       alert("Đăng ký thành công!");
-      navigate("/login"); 
+      navigate("/login");
     } catch (error: any) {
-      setGeneralError(error.message || "Lỗi không xác định");
+      console.error("Register Error:", error);
+      // Backend returns either { error: "..." } (old) or { message: "..." } (new/standard)
+      const msg = error.response?.data?.message || error.response?.data?.error || "Lỗi không xác định";
+      setGeneralError(msg);
     }
   };
+  const toggleShowPassword = () => setShowPassword(!showPassword);
 
   const handleGoogleLogin = async () => {
     window.location.href = "http://localhost:5000/auth/google?prompt=select_account&access_type=offline";
@@ -127,101 +128,106 @@ const Register = () => {
                   </motion.div>
                 )}
 
-                
-                  
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem className="text-left">
-                          <FormLabel className="pl-5 font-bold caret-transparent">Số điện thoại</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Smartphone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground caret-transparent" />
-                              <Input
-                                placeholder="Nhập số điện thoại"
-                                className="pl-10 border-accent/20 focus:border-accent"
-                                {...field}
-                                disabled={loading}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem className="text-left">
-                          <FormLabel className="pl-5 font-bold caret-transparent">Họ và tên</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground caret-transparent" />
-                              <Input
-                                placeholder="Họ và tên"
-                                className="pl-10 border-accent/20 focus:border-accent"
-                                {...field}
-                                disabled={loading}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem className="text-left">
-                          <FormLabel className="pl-5 font-bold caret-transparent">Mật khẩu</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground caret-transparent" />
-                              <Input
-                                placeholder="Mật khẩu"
-                                className="pl-10 border-accent/20 focus:border-accent"
-                                {...field}
-                                disabled={loading}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                  <Button type="submit" className="w-full !mt-10" onClick={handleRegister} disabled={loading}>
-                    Đăng ký
-                  </Button>
-
-             
-              
 
 
-                  <div className="relative text-center my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <span className="bg-white px-3 relative z-10 text-muted-foreground">
-                      Hoặc
-                    </span>
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem className="text-left">
+                      <FormLabel className="pl-5 font-bold caret-transparent">Số điện thoại</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Smartphone className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground caret-transparent" />
+                          <Input
+                            placeholder="Nhập số điện thoại"
+                            className="pl-10 border-accent/20 focus:border-accent"
+                            {...field}
+                            disabled={loading}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem className="text-left">
+                      <FormLabel className="pl-5 font-bold caret-transparent">Họ và tên</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground caret-transparent" />
+                          <Input
+                            placeholder="Họ và tên"
+                            className="pl-10 border-accent/20 focus:border-accent"
+                            {...field}
+                            disabled={loading}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem className="text-left">
+                      <FormLabel className="pl-5 font-bold caret-transparent">Mật khẩu</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground caret-transparent" />
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            className="pl-10 pr-10 border-accent/20 focus:border-accent"
+                            autoComplete="current-password"
+                            {...field}
+                          />
+                          <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1"
+                            onClick={toggleShowPassword}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full !mt-10" onClick={handleRegister} disabled={loading}>
+                  Đăng ký
+                </Button>
+
+
+
+
+
+                <div className="relative text-center my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
                   </div>
-              
+                  <span className="bg-white px-3 relative z-10 text-muted-foreground">
+                    Hoặc
+                  </span>
+                </div>
 
-               
-                  <Button
-                    className="w-full flex items-center gap-3 bg-white text-black border border-gray-300 shadow-sm hover:bg-gray-100"
-                    onClick={handleGoogleLogin}
-                    disabled={loading}
-                  >
-                    <img src="/icongg.webp" alt="Google Logo" className="h-5 bg-white rounded-md w-5" />
-                    <span className="font-medium">Đăng ký với Google</span>
-                  </Button>
-              
+
+
+                <Button
+                  className="w-full flex items-center gap-3 bg-white text-black border border-gray-300 shadow-sm hover:bg-gray-100"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                >
+                  <img src="/icongg.webp" alt="Google Logo" className="h-5 bg-white rounded-md w-5" />
+                  <span className="font-medium">Đăng ký với Google</span>
+                </Button>
+
 
               </form>
             </Form>

@@ -1,0 +1,10 @@
+Starting check...
+✅ Connected to MongoDB
+Testing getAllMetroLines logic...
+Found 5 lines.
+Line: Line 1: Ben Thanh - Suoi Tien, Stations: 14
+Line: Line 2: Ben Thanh - Tham Luong, Stations: 11
+Line: Line 3A: Ben Thanh - Tan Kien, Stations: 9
+Line: Line 4: Thanh Xuan - Hiep Phuoc, Stations: 8
+Line: Line 5: Saigon Bridge - Can Giuoc, Stations: 4
+✅ Test Completed

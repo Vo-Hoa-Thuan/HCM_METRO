@@ -6,6 +6,11 @@ const OrderSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   userName: {
     type: String,
     required: true,
@@ -34,7 +39,7 @@ const OrderSchema = new mongoose.Schema({
     default: 'pending',
   },
   routes: {
-    type: Array, 
+    type: Array,
     default: [],
   },
   createdAt: {
@@ -43,16 +48,16 @@ const OrderSchema = new mongoose.Schema({
   },
 
   expiryDate: {
-    type: Date, 
+    type: Date,
   },
   usageCount: {
-    type: Number, 
+    type: Number,
   },
   groupSize: {
     type: Number,
-  }, 
+  },
   qrCode: {
-    type: String, 
+    type: String,
   },
 });
 

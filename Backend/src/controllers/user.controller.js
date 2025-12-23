@@ -1,17 +1,16 @@
 const User = require('../models/user.model');
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const moment = require('moment');
+const AppError = require('../utils/AppError');
 
-require("dotenv").config();
-
-exports.registerUser = async (req, res) => {
+exports.registerUser = async (req, res, next) => {
+    console.log("👉 registerUser called with:", req.body);
     try {
         const { phoneNumber, name, password } = req.body;
 
         const existingUser = await User.findOne({ phoneNumber });
         if (existingUser) {
-            return res.status(400).json({ error: "Số điện thoại đã được sử dụng" });
+            throw new AppError("Số điện thoại đã được sử dụng", 400);
         }
 
         // Hash mật khẩu trước khi lưu vào database
@@ -25,37 +24,35 @@ exports.registerUser = async (req, res) => {
             signupType: "phone",
         });
 
-        res.status(201).json({ message: "Đăng ký thành công", userId: newUser._id });
+        res.status(201).json({ status: 'success', message: "Đăng ký thành công", userId: newUser._id });
     } catch (error) {
-        console.error("Lỗi khi đăng ký user:", error);
-        res.status(500).json({ error: "Lỗi khi đăng ký user" });
+        next(error);
     }
 };
 
 // 🔵 [GET] Lấy danh sách user
-exports.getUsers = async (req, res) => {
+exports.getUsers = async (req, res, next) => {
     try {
         const roleFilter = req.query.role ? { role: req.query.role } : {};
         const users = await User.find(roleFilter).select("-__v");
-        res.json(users);
+        res.json({ status: 'success', data: users });
     } catch (error) {
-        console.error("Lỗi khi lấy danh sách user:", error);
-        res.status(500).json({ error: "Lỗi khi lấy danh sách user" });
+        next(error);
     }
 };
 
-exports.createUser = async (req, res) => {
+exports.createUser = async (req, res, next) => {
     try {
-        const { signupType, phoneNumber, name, password, role, email , address} = req.body;
+        const { signupType, phoneNumber, name, password, role, email, address } = req.body;
 
         if (signupType === "phone") {
             if (!phoneNumber || !password || !name || !role) {
-                return res.status(400).json({ error: "Thiếu thông tin đăng ký bằng SĐT" });
+                throw new AppError("Thiếu thông tin đăng ký bằng SĐT", 400);
             }
 
             const existingUser = await User.findOne({ phoneNumber });
             if (existingUser) {
-                return res.status(400).json({ error: "Số điện thoại đã được sử dụng" });
+                throw new AppError("Số điện thoại đã được sử dụng", 400);
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,22 +60,22 @@ exports.createUser = async (req, res) => {
             const newUser = await User.create({
                 phoneNumber,
                 name,
-                password: hashedPassword,   
+                password: hashedPassword,
                 role,
                 address,
                 signupType
             });
 
-            return res.status(201).json({ message: "Đăng ký bằng SĐT thành công", userId: newUser._id });
+            return res.status(201).json({ status: 'success', message: "Đăng ký bằng SĐT thành công", userId: newUser._id });
 
         } else if (signupType === "google") {
             if (!email || !name || !role) {
-                return res.status(400).json({ error: "Thiếu thông tin đăng ký bằng Google" });
+                throw new AppError("Thiếu thông tin đăng ký bằng Google", 400);
             }
 
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                return res.status(400).json({ error: "Email đã được sử dụng" });
+                throw new AppError("Email đã được sử dụng", 400);
             }
 
             const newUser = await User.create({
@@ -89,80 +86,75 @@ exports.createUser = async (req, res) => {
                 signupType
             });
 
-            return res.status(201).json({ message: "Đăng ký bằng Google thành công", userId: newUser._id });
+            return res.status(201).json({ status: 'success', message: "Đăng ký bằng Google thành công", userId: newUser._id });
         } else {
-            return res.status(400).json({ error: "Hình thức đăng ký không hợp lệ" });
+            throw new AppError("Hình thức đăng ký không hợp lệ", 400);
         }
 
     } catch (error) {
-        console.error("Lỗi khi đăng ký user:", error);
-        res.status(500).json({ error: "Lỗi khi đăng ký user" });
+        next(error);
     }
 };
 
 
 // 🟡 [GET] Lấy user theo ID
-exports.getUserById = async (req, res) => {
+exports.getUserById = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id).select("-__v");
-        if (!user) return res.status(404).json({ error: "User không tồn tại" });
-        res.json(user);
+        if (!user) throw new AppError("User không tồn tại", 404);
+        res.json({ status: 'success', data: user });
     } catch (error) {
-        console.error("Lỗi khi lấy user:", error);
-        res.status(500).json({ error: "Lỗi khi lấy user" });
+        next(error);
     }
 };
 
 
-exports.updateUser = async (req, res) => {
+exports.updateUser = async (req, res, next) => {
     try {
         const { name, email, phoneNumber, role, address, status } = req.body;
         const userExists = await User.exists({ _id: req.params.id });
-        if (!userExists) return res.status(404).json({ error: "User không tồn tại" });
-        const updateData = {name, email, phoneNumber,address,status};
+        if (!userExists) throw new AppError("User không tồn tại", 404);
+        const updateData = { name, email, phoneNumber, address, status };
 
         if (role && req.user && req.user.role === "admin") {
-            updateData.role = role; 
+            updateData.role = role;
         }
-      
+
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
             updateData,
             { new: true, runValidators: true }
-        ); 
+        );
         res.status(200).json({
+            status: 'success',
             message: "Cập nhật thành công",
-            user: updatedUser,
-
+            user: updatedUser, // Keeping 'user' key for potential compatibility, but standard is data
+            data: updatedUser
         });
     } catch (error) {
-        console.error("Lỗi khi cập nhật user:", error);
-        res.status(500).json({ error: "Lỗi khi cập nhật user" });
+        next(error);
     }
 };
 
 
 // 🔴 [DELETE] Xóa user
-exports.deleteUser = async (req, res) => {
-    console.log("User ID to delete:", req.params.id);
+exports.deleteUser = async (req, res, next) => {
     try {
         const userExists = await User.exists({ _id: req.params.id });
-        if (!userExists) return res.status(404).json({ error: "User không tồn tại" });
-  
+        if (!userExists) throw new AppError("User không tồn tại", 404);
+
         await User.findByIdAndDelete(req.params.id);
-        res.json({ message: "User đã bị xóa" });
+        res.json({ status: 'success', message: "User đã bị xóa" });
     } catch (error) {
-        console.error("Lỗi khi xóa user:", error);
-        res.status(500).json({ error: "Lỗi khi xóa user" });
+        next(error);
     }
-  };
-  
-  exports.getNewUsersByTime = async (req, res) => {
+};
+
+exports.getNewUsersByTime = async (req, res, next) => {
     try {
         const { range } = req.query;
 
         let startDate;
-        console.log("Range nhận được:", range);
 
         switch (range) {
             case "day":
@@ -185,32 +177,32 @@ exports.deleteUser = async (req, res) => {
         });
 
         res.json({
-            timeRange: range,
-            count: newUsersCount
+            status: 'success',
+            data: {
+                timeRange: range,
+                count: newUsersCount
+            }
         });
-        console.log("Start date dùng để query:", startDate.toDate());
-
 
     } catch (error) {
-        console.error("Lỗi khi thống kê người dùng:", error);
-        res.status(500).json({ error: "Lỗi khi thống kê người dùng" });
+        next(error);
     }
 };
 
-exports.changePassword = async (req, res) => {
+exports.changePassword = async (req, res, next) => {
     try {
         const { oldPassword, newPassword } = req.body;
         const userId = req.params.id;
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ error: "User không tồn tại" });
+            throw new AppError("User không tồn tại", 404);
         }
 
         // Kiểm tra mật khẩu cũ có đúng không
         const isMatch = await bcrypt.compare(oldPassword, user.password);
         if (!isMatch) {
-            return res.status(400).json({ error: "Mật khẩu cũ không đúng" });
+            throw new AppError("Mật khẩu cũ không đúng", 400);
         }
 
         // Hash mật khẩu mới
@@ -219,9 +211,8 @@ exports.changePassword = async (req, res) => {
         user.password = hashedNewPassword;
         await user.save();
 
-        res.status(200).json({ message: "Đổi mật khẩu thành công" });
+        res.status(200).json({ status: 'success', message: "Đổi mật khẩu thành công" });
     } catch (error) {
-        console.error("Lỗi khi đổi mật khẩu:", error);
-        res.status(500).json({ error: "Lỗi khi đổi mật khẩu" });
+        next(error);
     }
 };

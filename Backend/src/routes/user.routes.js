@@ -4,8 +4,12 @@ const userController = require('../controllers/user.controller');
 const { authenticateToken, authorizeRoles } = require('../middleware/authMiddleware');
 
 
-router.post('/register', userController.registerUser);
-router.post('/',authenticateToken, authorizeRoles('admin'), userController.createUser);
+
+router.post('/register', (req, res, next) => {
+    console.log("👉 Route /register hit!");
+    userController.registerUser(req, res, next);
+});
+router.post('/', authenticateToken, authorizeRoles('admin'), userController.createUser);
 router.get('/', userController.getUsers);
 router.get('/:id', userController.getUserById);
 router.put('/:id', authenticateToken, authorizeRoles('admin'), userController.updateUser);

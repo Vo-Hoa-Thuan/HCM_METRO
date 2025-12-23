@@ -12,8 +12,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { getTicketById } from "@/api/ticketsAPI";
 import { formatPrice } from "@/api/ticketsAPI";
 import { Fragment } from "react";
-import { createVNPayUrl  } from "@/api/VnpayApi";
+import { createVNPayUrl } from "@/api/VnpayApi";
 import { createPaymentOrder } from "@/api/orderApi";
+import { toast } from "@/components/ui/use-toast";
 
 const Payment = () => {
   const location = useLocation();
@@ -23,7 +24,7 @@ const Payment = () => {
   const { ticketId, quantity, ticketName, ticketPrice } = location.state || {};
 
   // Dữ liệu nhận từ Tra Cứu Lộ Trình (Đầy đủ thông tin, chủ yếu là vé có giới hạn lượt)
-  const {fare, origin, destination, quantities, route, ticketType, discountPercent} = location.state || {};
+  const { fare, origin, destination, quantities, route, ticketType, discountPercent } = location.state || {};
 
   const [errors, setErrors] = useState({});
   const newErrors: { [key: string]: string } = {};
@@ -56,20 +57,20 @@ const Payment = () => {
     } else if (!emailRegex.test(form.email)) {
       newErrors.email = "Email không hợp lệ";
     }
-  
+
     if (!form.idNumber.trim()) {
       newErrors.idNumber = "Số CMND/CCCD không được để trống";
     }
-  
+
     if (!form.sub_type) {
       newErrors.sub_type = "Vui lòng chọn đối tượng mua vé";
     }
-  
-    setErrors(newErrors); 
-    return Object.keys(newErrors).length === 0; 
-  };  
-  
-  const [ticketData, setTicketData] = useState(null); 
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const [ticketData, setTicketData] = useState(null);
 
   useEffect(() => {
     const fetchTicketDetails = async () => {
@@ -83,7 +84,7 @@ const Payment = () => {
     };
     if (ticketId) fetchTicketDetails();
   }, [ticketId]);
-  
+
   if (!localStorage.getItem("accessToken")) {
     return <p>Bạn cần đăng nhập để truy cập trang này.</p>;
   }
@@ -93,11 +94,21 @@ const Payment = () => {
       console.log("Form không hợp lệ:", errors);
       return;
     }
-  
+
     try {
       const orderId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       const total = calculateTotalPrice();
-    
+
+      // Lấy token từ context
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast({
+          variant: "destructive",
+          description: "Vui lòng đăng nhập để tiếp tục"
+        });
+        return;
+      }
+
       // Tạo đối tượng dữ liệu đơn hàng (order form)
       let orderForm: any = {
         orderId,
@@ -111,7 +122,7 @@ const Payment = () => {
         quantities: quantities || 1,
         createdAt: new Date().toISOString(),
       };
-      
+
       if (["ngay", "tuan", "thang"].includes(orderForm.ticketType)) {
         const expireDate = new Date();
         if (orderForm.ticketType === "day") expireDate.setDate(expireDate.getDate() + 1);
@@ -119,86 +130,89 @@ const Payment = () => {
         if (orderForm.ticketType === "month") expireDate.setMonth(expireDate.getMonth() + 1);
         orderForm.expiredAt = expireDate.toISOString();
       }
-  
+
       // Nếu là vé giới hạn lượt: thêm số người / lượt
       if (["luot", "nhom", "khu hoi"].includes(orderForm.ticketType)) {
         orderForm.groupSize = form.groupSize || 1;
       }
 
       console.log("Order Form:", orderForm);
-    
-      // await sendOrderToBackend(orderForm);
-      const orderRes = await createPaymentOrder(orderForm);
-      console.log("Order đã được lưu:", orderRes);   
-    
+
+      const orderRes = await createPaymentOrder(orderForm, token);
+      console.log("Order đã được lưu:", orderRes);
+
       switch (form.paymentMethod) {
         case "vnpay": {
           const paymentUrl = await createVNPayUrl(total, orderId);
           console.log("Link thanh toán:", paymentUrl);
-          window.location.href = paymentUrl; 
+          window.location.href = paymentUrl;
           break;
         }
-  
+
         case "card": {
           console.log("Thanh toán bằng thẻ tín dụng - chưa tích hợp");
           break;
         }
-  
+
         case "qr": {
           console.log("Thanh toán bằng mã QR - đang phát triển");
           break;
         }
-  
+
         case "metro": {
-          console.log("Sử dụng thẻ Metro để thanh toán - xác thực từ backend");         
+          console.log("Sử dụng thẻ Metro để thanh toán - xác thực từ backend");
           break;
         }
-  
+
         default:
           console.warn("Chưa chọn hình thức thanh toán hợp lệ.");
       }
-  
+
       console.log("Tổng tiền:", total);
-  
+
     } catch (err) {
       console.error("Lỗi khi xử lý thanh toán:", err);
+      toast({
+        variant: "destructive",
+        description: "Có lỗi xảy ra khi xử lý thanh toán"
+      });
     }
   };
-  
-  
-  const isLimitedUseTicket = ["luot", "nhom", "khu hoi"].includes(ticketData?.category) || ticketType   ;
+
+
+  const isLimitedUseTicket = ["luot", "nhom", "khu hoi"].includes(ticketType) || ticketType;
   const isUnlimitedUseTicket = ["ngay", "tuan", "thang"].includes(ticketData?.category);
 
   const calculateTotalPrice = () => {
     const isLimited = ["luot", "khu hoi", "nhom"].includes(ticketType);
-  
+
     const base = ticketData?.price ?? fare;
     const qty = isLimited ? (quantities || 1) : (quantity || 1);
     const gross = base * qty;
-  
+
     const ticketDiscount = isLimited ? (discountPercent || 0) : (ticketData?.discount_percent || 0);
-  
+
     let additionalDiscount = 0;
     if (form.sub_type === "sinhvien") additionalDiscount += 20;
     if (form.sub_type === "nguoi_cao_tuoi") additionalDiscount += 30;
-  
+
     const totalDiscount = ticketDiscount + additionalDiscount;
-  
+
     const total = gross * (1 - totalDiscount / 100);
     const roundedTotal = Math.round(total / 1000) * 1000;
-  
+
     return roundedTotal;
   };
-  
+
   const today = new Date();
   let availableUntil = "";
-  
+
   if (ticketData?.category === "ngay") {
-    availableUntil = today.toLocaleDateString("vi-VN"); 
+    availableUntil = today.toLocaleDateString("vi-VN");
   } else if (ticketData?.category === "tuan") {
     const nextWeek = new Date(today);
     nextWeek.setDate(today.getDate() + 7);
-    availableUntil = nextWeek.toLocaleDateString("vi-VN"); 
+    availableUntil = nextWeek.toLocaleDateString("vi-VN");
   } else if (ticketData?.category === "thang") {
     const nextMonth = new Date(today);
     nextMonth.setMonth(today.getMonth() + 1);
@@ -208,7 +222,7 @@ const Payment = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col caret-transparent">
       <Navbar />
       <div className="px-10 mt-6 p-6">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
@@ -228,9 +242,9 @@ const Payment = () => {
                   <Badge variant="secondary">
                     Loại vé: {
                       ticketType === 'luot' ? 'Lượt' :
-                      ticketType === 'khu_hoi' ? 'Khứ Hồi' :
-                      ticketType === 'nhom' ? 'Nhóm' :
-                      'Không xác định'
+                        ticketType === 'khu_hoi' ? 'Khứ Hồi' :
+                          ticketType === 'nhom' ? 'Nhóm' :
+                            'Không xác định'
                     }
                   </Badge>
                 </div>
@@ -238,7 +252,7 @@ const Payment = () => {
               <CardContent className="bg-white space-y-4">
                 <div className="flex justify-between text-sm">
                   <span><strong>Ga khởi hành:  {origin}</strong></span>
-                  <span>{ticketData?.departureTime || "Thiết kế hệ thống thời gian sau" }</span>
+                  <span>{ticketData?.departureTime || "Thiết kế hệ thống thời gian sau"}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span><strong>Ga đích: {destination}</strong></span>
@@ -249,64 +263,64 @@ const Payment = () => {
                   <span>{ticketData?.duration || "Sẽ xây dựng hàm tính thời gian di chuyển dựa trên khoảng cách"}</span>
                 </div>
                 <div className="flex flex-col border-t pt-2 text-sm">
-    <span className="mb-1 font-medium text-gray-600">Lộ trình di chuyển</span>
-    <div className="space-y-2">
-      {ticketType === "khu hoi" ? (
-        <>
-          {/* Lộ trình lượt đi */}
-          <div className="bg-blue-50 p-3 rounded-md">
-            <strong>Lộ trình lượt đi:</strong>
-            <div className="flex items-center space-x-2 mt-1">
-              {route?.map((station, index) => (
-                <Fragment key={index}>
-                  <span className="bg-blue-200 px-3 py-1 rounded-lg text-blue-800 font-semibold">
-                    {station}
-                  </span>
-                  {index !== route.length - 1 && (
-                    <span className="text-gray-500">→</span>
-                  )}
-                </Fragment>
-              ))}
-            </div>
-          </div>
-          
-          {/* Lộ trình lượt về */}
-          <div className="bg-blue-50 p-3 rounded-md">
-            <strong>Lộ trình lượt về:</strong>
-            <div className="flex items-center space-x-2 mt-1">
-              {route?.slice().reverse().map((station, index) => (
-                <Fragment key={index}>
-                  <span className="bg-blue-200 px-3 py-1 rounded-lg text-blue-800 font-semibold">
-                    {station}
-                  </span>
-                  {index !== route.length - 1 && (
-                    <span className="text-gray-500">→</span>
-                  )}
-                </Fragment>
-              ))}
-            </div>
-          </div>
-        </>
-      ) : (
-        // Lộ trình 1 chiều
-        <div className="bg-blue-50 p-3 rounded-md">
-          <strong>Lộ trình:</strong>
-          <div className="flex items-center space-x-2 mt-1">
-            {route?.map((station, index) => (
-              <Fragment key={index}>
-                <span className="bg-blue-200 px-3 py-1 rounded-lg text-blue-800 font-semibold">
-                  {station}
-                </span>
-                {index !== route.length - 1 && (
-                  <span className="text-gray-500">→</span>
-                )}
-              </Fragment>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
+                  <span className="mb-1 font-medium text-gray-600">Lộ trình di chuyển</span>
+                  <div className="space-y-2">
+                    {ticketType === "khu hoi" ? (
+                      <>
+                        {/* Lộ trình lượt đi */}
+                        <div className="bg-blue-50 p-3 rounded-md">
+                          <strong>Lộ trình lượt đi:</strong>
+                          <div className="flex items-center space-x-2 mt-1">
+                            {route?.map((station, index) => (
+                              <Fragment key={index}>
+                                <span className="bg-blue-200 px-3 py-1 rounded-lg text-blue-800 font-semibold">
+                                  {station}
+                                </span>
+                                {index !== route.length - 1 && (
+                                  <span className="text-gray-500">→</span>
+                                )}
+                              </Fragment>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Lộ trình lượt về */}
+                        <div className="bg-blue-50 p-3 rounded-md">
+                          <strong>Lộ trình lượt về:</strong>
+                          <div className="flex items-center space-x-2 mt-1">
+                            {route?.slice().reverse().map((station, index) => (
+                              <Fragment key={index}>
+                                <span className="bg-blue-200 px-3 py-1 rounded-lg text-blue-800 font-semibold">
+                                  {station}
+                                </span>
+                                {index !== route.length - 1 && (
+                                  <span className="text-gray-500">→</span>
+                                )}
+                              </Fragment>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      // Lộ trình 1 chiều
+                      <div className="bg-blue-50 p-3 rounded-md">
+                        <strong>Lộ trình:</strong>
+                        <div className="flex items-center space-x-2 mt-1">
+                          {route?.map((station, index) => (
+                            <Fragment key={index}>
+                              <span className="bg-blue-200 px-3 py-1 rounded-lg text-blue-800 font-semibold">
+                                {station}
+                              </span>
+                              {index !== route.length - 1 && (
+                                <span className="text-gray-500">→</span>
+                              )}
+                            </Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
               </CardContent>
             </Card>
@@ -322,9 +336,9 @@ const Payment = () => {
                     <p className="text-sm text-blue-600">
                       Loại vé: {
                         ticketData?.category === 'ngay' ? 'Ngày' :
-                        ticketData?.category === 'tuan' ? 'Tuần' :
-                        ticketData?.category === 'thang' ? 'Tháng' :
-                        'Không xác định'
+                          ticketData?.category === 'tuan' ? 'Tuần' :
+                            ticketData?.category === 'thang' ? 'Tháng' :
+                              'Không xác định'
                       }
                     </p>
 
@@ -338,7 +352,7 @@ const Payment = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Thời gian hiệu lực</span>
                   <span className="font-medium text-blue-700">
-                     Từ hôm nay đến {availableUntil}
+                    Từ hôm nay đến {availableUntil}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -358,10 +372,10 @@ const Payment = () => {
               {/* Họ và tên */}
               <div>
                 <label className="block text-sm mb-1 text-gray-700">Họ và tên</label>
-                <Input 
-                  value={form.fullName} 
-                  onChange={(e) => setForm({...form, fullName: e.target.value})} 
-                  placeholder="Nhập họ và tên" 
+                <Input
+                  value={form.fullName}
+                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                  placeholder="Nhập họ và tên"
                 />
                 {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
               </div>
@@ -369,10 +383,10 @@ const Payment = () => {
               {/* Số điện thoại */}
               <div>
                 <label className="block text-sm mb-1 text-gray-700">Số điện thoại</label>
-                <Input 
-                  value={form.phone} 
-                  onChange={(e) => setForm({...form, phone: e.target.value})} 
-                  placeholder="Nhập số điện thoại" 
+                <Input
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="Nhập số điện thoại"
                 />
                 {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
               </div>
@@ -380,10 +394,10 @@ const Payment = () => {
               {/* Email */}
               <div>
                 <label className="block text-sm mb-1 text-gray-700">Email</label>
-                <Input 
-                  value={form.email} 
-                  onChange={(e) => setForm({...form, email: e.target.value})} 
-                  placeholder="Nhập địa chỉ email" 
+                <Input
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="Nhập địa chỉ email"
                 />
                 {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
               </div>
@@ -391,10 +405,10 @@ const Payment = () => {
               {/* Số CMND/CCCD */}
               <div>
                 <label className="block text-sm mb-1 text-gray-700">Số CMND/CCCD</label>
-                <Input 
-                  value={form.idNumber} 
-                  onChange={(e) => setForm({...form, idNumber: e.target.value})} 
-                  placeholder="Nhập số CMND/CCCD" 
+                <Input
+                  value={form.idNumber}
+                  onChange={(e) => setForm({ ...form, idNumber: e.target.value })}
+                  placeholder="Nhập số CMND/CCCD"
                 />
                 {errors.idNumber && <p className="text-red-500 text-sm">{errors.idNumber}</p>}
               </div>
@@ -402,7 +416,7 @@ const Payment = () => {
               {/* Đối tượng mua vé */}
               <div className="md:col-span-2">
                 <label className="block text-sm mb-1 text-gray-700">Đối tượng mua vé</label>
-                <Select value={form.sub_type} onValueChange={(value) => setForm({...form, sub_type: value})}>
+                <Select value={form.sub_type} onValueChange={(value) => setForm({ ...form, sub_type: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn đối tượng" />
                   </SelectTrigger>
@@ -461,7 +475,7 @@ const Payment = () => {
                   <div className="border-t pt-3 flex justify-between font-semibold text-base text-blue-800">
                     <span>Tổng cộng</span>
                     <span>
-                    {calculateTotalPrice().toLocaleString()}đ
+                      {calculateTotalPrice().toLocaleString()}đ
                     </span>
                   </div>
                 </>
@@ -513,29 +527,30 @@ const Payment = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <RadioGroup value={form.paymentMethod} onValueChange={(value) => {
-                    console.log("Phương thức thanh toán đã chọn:", value);
-                    setForm({ ...form, paymentMethod: value }); }}>
-                    {[
-                      { value: "card", label: "Thẻ tín dụng / ghi nợ", icon: "iconcard.png" },
-                      { value: "qr", label: "Quét mã QR", icon: "iconmaqr.jpg" },
-                      { value: "vnpay", label: "Ví VN-Pay", icon: "iconvnpay.jpg" },
-                      { value: "metro", label: "Thẻ Metro", icon: "iconthemetro.png" },
-                    ].map((method) => (
-                      <div
-                        key={method.value}
-                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition 
+                console.log("Phương thức thanh toán đã chọn:", value);
+                setForm({ ...form, paymentMethod: value });
+              }}>
+                {[
+                  { value: "card", label: "Thẻ tín dụng / ghi nợ", icon: "iconcard.png" },
+                  { value: "qr", label: "Quét mã QR", icon: "iconmaqr.jpg" },
+                  { value: "vnpay", label: "Ví VN-Pay", icon: "iconvnpay.jpg" },
+                  { value: "metro", label: "Thẻ Metro", icon: "iconthemetro.png" },
+                ].map((method) => (
+                  <div
+                    key={method.value}
+                    className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition 
                                     ${form.paymentMethod === method.value
-                                      ? "border-blue-500 bg-blue-50 text-blue-800"
-                                      : "border-gray-300 hover:border-blue-400"}`}
-                        onClick={() => setForm({ ...form, paymentMethod: method.value })}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <img src={method.icon} alt={method.label} className="w-12 h-12" />
-                          <RadioGroupItem value={method.value} id={method.value} />
-                          <label htmlFor={method.value} className="text-sm">{method.label}</label>
-                        </div>
-                      </div>
-                    ))}
+                        ? "border-blue-500 bg-blue-50 text-blue-800"
+                        : "border-gray-300 hover:border-blue-400"}`}
+                    onClick={() => setForm({ ...form, paymentMethod: method.value })}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <img src={method.icon} alt={method.label} className="w-12 h-12" />
+                      <RadioGroupItem value={method.value} id={method.value} />
+                      <label htmlFor={method.value} className="text-sm">{method.label}</label>
+                    </div>
+                  </div>
+                ))}
 
               </RadioGroup>
             </CardContent>

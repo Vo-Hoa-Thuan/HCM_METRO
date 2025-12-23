@@ -16,27 +16,34 @@ passport.use(
                 let user = await User.findOne({ googleId: profile.id });
 
                 if (!user) {
-                    user = new User({
-                        googleId: profile.id,
-                        name: profile.displayName,
-                        email: profile.emails?.[0]?.value || null,
-                        verified: true,
-                        signupType: "google", 
-                    });
+                    // Check if user exists with same email but different provider
+                    if (profile.emails?.[0]?.value) {
+                         const userWithEmail = await User.findOne({ email: profile.emails[0].value });
+                         if (userWithEmail) {
+                             // Link account? Or just return error? Or auto-merge?
+                             // For now, let's just update the googleId if it's missing, or return that user.
+                             user = userWithEmail;
+                             if (!user.googleId) {
+                                 user.googleId = profile.id;
+                                 await user.save();
+                             }
+                         }
+                    }
 
-                    await user.save();
-                } else {
-                    console.log("Người dùng đã tồn tại -> Đăng nhập");
+                    if (!user) {
+                        user = new User({
+                            googleId: profile.id,
+                            name: profile.displayName,
+                            email: profile.emails?.[0]?.value || null,
+                            signupType: "google", 
+                            role: "user", // Default role
+                            // avatar: profile.photos?.[0]?.value // schema doesnt have avatar yet? Controller had it.
+                        });
+                        await user.save();
+                    }
                 }
 
-                // 🔹 Tạo token JWT
-                const token = jwt.sign(
-                    { userId: user._id, role: user.role }, 
-                    process.env.JWT_SECRET, 
-                    { expiresIn: "7d" }
-                );
-
-                return done(null, { user, token });
+                return done(null, user);
             } catch (err) {
                 return done(err, null);
             }

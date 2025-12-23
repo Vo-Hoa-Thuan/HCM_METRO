@@ -62,22 +62,22 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      const { data } = await axios.post("http://localhost:5000/auth/refresh", {}, { withCredentials: true });
+      const response = await axios.post("http://localhost:5000/auth/refresh", {}, { withCredentials: true });
+      const { data } = response;
+      const authData = data.data || data;
 
-      if (data?.accessToken) {
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("name", data.name);
-        localStorage.setItem("role", data.role);
-        localStorage.setItem("userId", data.id);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
+      if (authData?.accessToken) {
+        localStorage.setItem("accessToken", authData.accessToken);
+        // Note: refresh endpoint doesn't return name/role/id usually, so be careful updating these unless backend sends them
+        // My new backend refresh only returns accessToken and refreshToken
 
-        setUser({
-          token: data.accessToken,
+        axios.defaults.headers.common["Authorization"] = `Bearer ${authData.accessToken}`;
+
+        setUser((prev) => ({
+          ...prev,
+          token: authData.accessToken,
           isAuthenticated: true,
-          name: data.name,
-          role: data.role,
-          id: data.id,
-        });
+        }));
       }
     } catch (error) {
       console.error("Lỗi refresh token:", error);
@@ -94,15 +94,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (phoneNumber, password) => {
     try {
-      const { data } = await axios.post("http://localhost:5000/auth/login", { phoneNumber, password }, { withCredentials: true });
+      const response = await axios.post("http://localhost:5000/auth/login", { phoneNumber, password }, { withCredentials: true });
+      const { data } = response;
 
-      if (data?.accessToken) {
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("role", data.role);
-        localStorage.setItem("name", data.name);
-        localStorage.setItem("userId", data.id);
-        if (data.refreshToken) {
-          localStorage.setItem("refreshToken", data.refreshToken);
+      // New backend sends { status: 'success', data: { accessToken, ... } }
+      const authData = data.data || data;
+
+      if (authData?.accessToken) {
+        localStorage.setItem("accessToken", authData.accessToken);
+        localStorage.setItem("role", authData.role);
+        localStorage.setItem("name", authData.name);
+        localStorage.setItem("userId", authData.id);
+        if (authData.refreshToken) {
+          localStorage.setItem("refreshToken", authData.refreshToken);
         }
 
         const accessToken = localStorage.getItem("accessToken");
@@ -110,7 +114,13 @@ export const AuthProvider = ({ children }) => {
           axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         }
 
-        setUser({ token: data.accessToken, isAuthenticated: true, name: data.name, role: data.role, id: data.id });
+        setUser({
+          token: authData.accessToken,
+          isAuthenticated: true,
+          name: authData.name,
+          role: authData.role,
+          id: authData.id
+        });
         setGeneralError("");
       }
     } catch (error) {

@@ -117,8 +117,6 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
   }, [selectedTime]);
   
 
-  
-
   const createUserMutation = useMutation({
     mutationFn: createUser,
     onSuccess: () => {
@@ -329,8 +327,6 @@ const UsersTab = ({ searchTerm }: UsersTabProps) => {
       }
     }
   };
-  
-  
   
 
   const handleDeleteConfirm = async () => {

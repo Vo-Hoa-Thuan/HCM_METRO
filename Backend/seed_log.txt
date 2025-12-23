@@ -1,0 +1,16 @@
+Starting seed...
+✅ Connected to MongoDB
+Cleaning up old data...
+Creating new data...
+Processed 14 stations for line1
+Processed 10 stations for line2
+Processed 8 stations for line3a
+Processed 8 stations for line4
+Processed 4 stations for line5
+Created 5 Metro Lines.
+✅ Tickets created
+✅ News created
+✅ Progress entries created
+Created Trains for Line 1.
+Created Schedules for Line 1.
+🎉 FULL SEEDING COMPLETED!

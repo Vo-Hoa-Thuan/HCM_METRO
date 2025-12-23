@@ -163,7 +163,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
-    
+
     // Xử lý JWT token hết hạn
     if (error.response?.status === 401) {
       // Token hết hạn hoặc không hợp lệ, chuyển hướng đến trang đăng nhập
@@ -174,7 +174,7 @@ api.interceptors.response.use(
         // window.location.href = '/login';
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -215,6 +215,10 @@ export const deleteLine = async (id: string) => {
   return await api.delete(`/lines/${id}`);
 };
 
+export const getRealTimeTrains = async () => {
+  return handleApiCall(api.get('/trains/realtime'), []);
+};
+
 // Stations
 export const getAllStations = async (params = {}) => {
   return handleApiCall(api.get('/stations', { params }), { stations: mockStations });
@@ -239,7 +243,7 @@ export const deleteStation = async (id: string) => {
 // Routes 
 export const searchRoutes = async (origin: string, destination: string, time: string): Promise<RouteOption[]> => {
   return handleApiCall(
-    api.get('/routes/search', { params: { origin, destination, time } }), 
+    api.get('/routes/search', { params: { origin, destination, time } }),
     []
   );
 };

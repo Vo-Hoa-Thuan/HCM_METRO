@@ -11,7 +11,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getAllStations } from '@/api/stationsApi';
-import { getAllLines} from '@/api/lineApi';
+import { getAllLines, getRealTimeTrains } from '@/api/lineApi';
+import { getRealTimeTrains as getRealTimeTrainsFromMetro } from '@/api/metroApi';
 import {
   Popover,
   PopoverContent,
@@ -93,12 +94,14 @@ const MetroMap = () => {
   const [showLegend, setShowLegend] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showUnderground, setShowUnderground] = useState(true);
+  const [showRealTime, setShowRealTime] = useState(false);
+  const [realTimeTrains, setRealTimeTrains] = useState<any[]>([]);
   const { toast } = useToast();
-  
+
   // Setting SVG viewBox parameters
   const viewBoxWidth = 800;
   const viewBoxHeight = 600;
-  
+
   // Geographic bounds of our map area (adjusted to fit all stations)
   const geoBounds = {
     minLng: 106.600,
@@ -106,12 +109,12 @@ const MetroMap = () => {
     minLat: 10.680,
     maxLat: 10.860
   };
-  
+
   // Convert geographic coordinates to SVG coordinates
   const geoToSvgX = (lng: number) => {
     return ((lng - geoBounds.minLng) / (geoBounds.maxLng - geoBounds.minLng)) * viewBoxWidth;
   };
-  
+
   const geoToSvgY = (lat: number) => {
     // Y-axis is inverted in SVG
     return viewBoxHeight - ((lat - geoBounds.minLat) / (geoBounds.maxLat - geoBounds.minLat)) * viewBoxHeight;
@@ -130,7 +133,7 @@ const MetroMap = () => {
     setIsAnimating(true);
     setScale(1);
     setPosition({ x: 0, y: 0 });
-    
+
     // Reset the animation state after transition completes
     setTimeout(() => {
       setIsAnimating(false);
@@ -185,14 +188,14 @@ const MetroMap = () => {
   // Handle station selection
   const handleStationClick = (stationId: string) => {
     setSelectedStation(prev => prev === stationId ? null : stationId);
-    
+
     const station = getStationById(stationId);
     if (station) {
       const lineNames = station.lines.map(line => {
         const metroLine = metroLines.find(l => l.id === line);
         return metroLine?.nameVi || '';
       }).join(', ');
-      
+
       toast({
         title: station.name,
         description: `${station.nameVi} - ${lineNames}`,
@@ -202,7 +205,7 @@ const MetroMap = () => {
 
   // Get facility icon
   const getFacilityIcon = (facility: string) => {
-    switch(facility) {
+    switch (facility) {
       case 'elevator':
         return <Clock className="h-4 w-4" />; // Changed from Escalator to Clock
       case 'ticket-office':
@@ -243,6 +246,32 @@ const MetroMap = () => {
     };
   }, []);
 
+  // Real-time train polling
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    const fetchTrains = async () => {
+      if (!showRealTime) return;
+      try {
+        const trains = await getRealTimeTrainsFromMetro();
+        setRealTimeTrains(trains);
+      } catch (error) {
+        console.error("Failed to fetch real-time trains", error);
+      }
+    };
+
+    if (showRealTime) {
+      fetchTrains(); // Initial fetch
+      intervalId = setInterval(fetchTrains, 3000); // Poll every 3 seconds
+    } else {
+      setRealTimeTrains([]);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [showRealTime]);
+
   // Drawing metro lines
   const renderMetroLines = () => {
     return metroLines.map(line => {
@@ -259,7 +288,7 @@ const MetroMap = () => {
           pathData += ` L ${lineStations[i][0]} ${lineStations[i][1]}`;
         }
       }
-      
+
       // Check if line has underground segments
       const hasUndergroundSegments = line.stations.some(stationId => {
         const station = getStationById(stationId);
@@ -299,7 +328,7 @@ const MetroMap = () => {
       const x = geoToSvgX(station.coordinates[0]);
       const y = geoToSvgY(station.coordinates[1]);
       const isSelected = selectedStation === station.id;
-      
+
       // Determine station color based on lines
       let stationColor = 'text-metro-gray';
       if (station.lines.includes('red')) stationColor = 'text-metro-red';
@@ -308,16 +337,16 @@ const MetroMap = () => {
       else if (station.lines.includes('purple')) stationColor = 'text-metro-purple';
       else if (station.lines.includes('yellow')) stationColor = 'text-metro-yellow';
       else if (station.lines.includes('brown')) stationColor = 'text-metro-brown';
-      
+
       // For interchange stations (multiple lines)
       const isInterchange = station.lines.length > 1;
-      
+
       // For depots
       const isDepot = station.isDepot;
-      
+
       // For underground stations
       const isUnderground = station.isUnderground;
-      
+
       return (
         <g key={station.id} className="station-marker">
           {/* Station highlight/pulse effect for selected station */}
@@ -332,7 +361,7 @@ const MetroMap = () => {
               style={{ color: stationColor.replace('text-', 'fill-') }}
             />
           )}
-          
+
           {/* White outline around station */}
           <circle
             cx={x}
@@ -343,7 +372,7 @@ const MetroMap = () => {
             stroke="#111"
             className={isSelected ? 'stroke-accent stroke-[2px]' : ''}
           />
-          
+
           {/* Station inner circle */}
           {isDepot ? (
             <rect
@@ -360,14 +389,13 @@ const MetroMap = () => {
               cx={x}
               cy={y}
               r={isInterchange ? 5 : 3}
-              className={`${
-                isInterchange ? 'fill-white stroke-black stroke-1' : stationColor.replace('text-', 'fill-')
-              } ${isSelected ? 'stroke-accent stroke-[2px]' : ''}`}
+              className={`${isInterchange ? 'fill-white stroke-black stroke-1' : stationColor.replace('text-', 'fill-')
+                } ${isSelected ? 'stroke-accent stroke-[2px]' : ''}`}
               onClick={() => handleStationClick(station.id)}
               style={{ cursor: 'pointer' }}
             />
           )}
-          
+
           {/* Underground indicator */}
           {isUnderground && showUnderground && (
             <circle
@@ -381,7 +409,7 @@ const MetroMap = () => {
               style={{ pointerEvents: 'none' }}
             />
           )}
-          
+
           {/* Station label */}
           {(isSelected || showAllStationLabels || isInterchange || isDepot) && (
             <g className="station-label">
@@ -413,78 +441,114 @@ const MetroMap = () => {
     });
   };
 
+  // Rendering real-time trains
+  const renderRealTimeTrains = () => {
+    if (!showRealTime || !realTimeTrains.length) return null;
+
+    return realTimeTrains.map(train => {
+      // Assuming API returns lat/lng
+      if (!train.lat || !train.lng) return null;
+
+      const x = geoToSvgX(train.lng);
+      const y = geoToSvgY(train.lat);
+
+      return (
+        <g key={train.trainId} className="train-marker" style={{ transition: 'all 3s linear' }}>
+          <circle
+            cx={x}
+            cy={y}
+            r="6"
+            fill="#FFD700"
+            stroke="#000"
+            strokeWidth="1.5"
+            className="drop-shadow-md"
+          />
+          <text
+            x={x}
+            y={y - 10}
+            textAnchor="middle"
+            className="text-[8px] font-bold fill-black bg-white"
+            style={{ textShadow: '0 0 2px white' }}
+          >
+            {train.trainNumber}
+          </text>
+        </g>
+      );
+    });
+  };
+
   // Render map watermark and background features
   const renderMapFeatures = () => {
     return (
       <g className="map-features">
         {/* City area outlines */}
-        <path 
-          d="M50,400 C150,350 300,380 400,300 C500,250 650,280 750,320" 
-          fill="none" 
-          stroke="#ddd" 
-          strokeWidth="30" 
+        <path
+          d="M50,400 C150,350 300,380 400,300 C500,250 650,280 750,320"
+          fill="none"
+          stroke="#ddd"
+          strokeWidth="30"
           opacity="0.1"
         />
-        
+
         {/* Rivers */}
-        <path 
-          d="M150,100 C200,200 180,300 250,400 C280,450 350,480 400,500" 
-          fill="none" 
-          stroke="#A5D6F1" 
-          strokeWidth="20" 
+        <path
+          d="M150,100 C200,200 180,300 250,400 C280,450 350,480 400,500"
+          fill="none"
+          stroke="#A5D6F1"
+          strokeWidth="20"
           opacity="0.6"
         />
-        
-        <path 
-          d="M450,150 C500,200 520,300 550,350 C580,400 650,420 700,430" 
-          fill="none" 
-          stroke="#A5D6F1" 
-          strokeWidth="15" 
+
+        <path
+          d="M450,150 C500,200 520,300 550,350 C580,400 650,420 700,430"
+          fill="none"
+          stroke="#A5D6F1"
+          strokeWidth="15"
           opacity="0.6"
         />
-        
+
         {/* City center highlight */}
-        <circle 
-          cx={geoToSvgX(106.698471)} 
-          cy={geoToSvgY(10.773237)} 
-          r="40" 
-          fill="#f8f8f8" 
+        <circle
+          cx={geoToSvgX(106.698471)}
+          cy={geoToSvgY(10.773237)}
+          r="40"
+          fill="#f8f8f8"
           opacity="0.2"
         />
-        
+
         {/* Map watermark */}
-        <text 
-          x={viewBoxWidth / 2} 
-          y={viewBoxHeight - 20} 
-          textAnchor="middle" 
+        <text
+          x={viewBoxWidth / 2}
+          y={viewBoxHeight - 20}
+          textAnchor="middle"
           className="text-[16px] fill-muted-foreground opacity-30 font-light"
         >
           TP. Hồ Chí Minh
         </text>
-        
+
         {/* Grid lines for reference */}
         <g className="grid-lines" opacity="0.1">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <line 
+            <line
               key={`h-${i}`}
-              x1="0" 
-              y1={i * viewBoxHeight / 5} 
-              x2={viewBoxWidth} 
-              y2={i * viewBoxHeight / 5} 
-              stroke="#333" 
-              strokeWidth="0.5" 
+              x1="0"
+              y1={i * viewBoxHeight / 5}
+              x2={viewBoxWidth}
+              y2={i * viewBoxHeight / 5}
+              stroke="#333"
+              strokeWidth="0.5"
               strokeDasharray="2,2"
             />
           ))}
           {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-            <line 
+            <line
               key={`v-${i}`}
-              x1={i * viewBoxWidth / 6} 
-              y1="0" 
-              x2={i * viewBoxWidth / 6} 
-              y2={viewBoxHeight} 
-              stroke="#333" 
-              strokeWidth="0.5" 
+              x1={i * viewBoxWidth / 6}
+              y1="0"
+              x2={i * viewBoxWidth / 6}
+              y2={viewBoxHeight}
+              stroke="#333"
+              strokeWidth="0.5"
               strokeDasharray="2,2"
             />
           ))}
@@ -497,7 +561,7 @@ const MetroMap = () => {
     <div className="metro-map relative bg-white rounded-xl border overflow-hidden shadow-md">
       {/* Inject CSS for metro line styles */}
       <style>{metroLineStyles}</style>
-      
+
       {/* Map Controls - Styled more prominently */}
       <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
         <Button variant="default" size="icon" onClick={handleZoomIn} title="Phóng to" className="bg-white text-primary hover:bg-gray-100 shadow-sm">
@@ -533,7 +597,7 @@ const MetroMap = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="flex items-center gap-2 mb-2">
               <MapPin className="h-4 w-4 text-primary" />
               <h3 className="font-medium">Các trạm</h3>
@@ -565,11 +629,11 @@ const MetroMap = () => {
                 <span className="text-sm">Trạm ngầm</span>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between pt-2 border-t mb-1.5">
               <span className="text-xs text-muted-foreground">Hiển thị tất cả trạm</span>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input 
+                <input
                   type="checkbox"
                   checked={showAllStationLabels}
                   onChange={() => setShowAllStationLabels(!showAllStationLabels)}
@@ -578,11 +642,13 @@ const MetroMap = () => {
                 <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
               </label>
             </div>
-            
+
+
+
             <div className="flex items-center justify-between pt-2 border-t">
               <span className="text-xs text-muted-foreground">Hiển thị đường ngầm</span>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input 
+                <input
                   type="checkbox"
                   checked={showUnderground}
                   onChange={() => setShowUnderground(!showUnderground)}
@@ -591,12 +657,25 @@ const MetroMap = () => {
                 <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
               </label>
             </div>
+
+            <div className="flex items-center justify-between pt-2 border-t mt-2">
+              <span className="text-xs font-semibold text-blue-600">Live Tracking (Beta)</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showRealTime}
+                  onChange={() => setShowRealTime(!showRealTime)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+              </label>
+            </div>
           </PopoverContent>
         </Popover>
       </div>
 
       {/* Map SVG Container with improved styling */}
-      <div 
+      <div
         className="w-full h-[600px] overflow-hidden bg-gray-50"
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
@@ -619,151 +698,156 @@ const MetroMap = () => {
         >
           {/* Map background with subtle patterns */}
           <rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill="#f8fafc" />
-          
+
           {/* Map features like city areas */}
           {renderMapFeatures()}
-          
+
           {/* Metro lines */}
           {renderMetroLines()}
-          
+
           {/* Station markers */}
           {renderStations()}
+
+          {/* Real-time trains */}
+          {renderRealTimeTrains()}
         </svg>
       </div>
 
       {/* Station Info panel with improved design */}
-      {selectedStation && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-white rounded-lg shadow-lg border p-4 z-20 animate-slide-up">
-          {(() => {
-            const station = getStationById(selectedStation);
-            if (!station) return null;
-            
-            // Get line colors for badges
-            const getLineColor = (lineId: string) => {
-              switch(lineId) {
-                case 'red': return 'bg-metro-red';
-                case 'blue': return 'bg-metro-blue';
-                case 'green': return 'bg-metro-green';
-                case 'purple': return 'bg-metro-purple';
-                case 'yellow': return 'bg-metro-yellow';
-                case 'brown': return 'bg-metro-brown';
-                default: return 'bg-metro-gray';
-              }
-            };
-            
-            return (
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-medium text-lg flex items-center gap-2">
-                    <svg width="20" height="20" viewBox="0 0 20 20">
-                      {station.isDepot ? (
-                        <rect x="5" y="5" width="10" height="10" className={`fill-metro-${station.lines[0]}`} />
-                      ) : (
-                        <circle cx="10" cy="10" r="6" className={`fill-metro-${station.lines[0]}`} />
-                      )}
-                    </svg>
-                    {station.name}
-                  </h3>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setSelectedStation(null)}
-                    className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
-                  >
-                    ✕
-                  </Button>
-                </div>
-                <p className="text-muted-foreground mb-3">{station.nameVi}</p>
-                
-                <div className="flex gap-2 flex-wrap mb-3">
-                  {station.lines.map(line => {
-                    const metroLine = metroLines.find(l => l.id === line);
-                    return (
-                      <div 
-                        key={line}
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium text-white ${getLineColor(line)}`}
-                      >
-                        {metroLine?.nameVi || ''}
-                      </div>
-                    );
-                  })}
-                  
-                  {station.isDepot && (
-                    <div className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
-                      Depot
-                    </div>
-                  )}
-                  
-                  {station.isUnderground && (
-                    <div className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-white">
-                      Đường ngầm
-                    </div>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <h4 className="text-xs uppercase text-muted-foreground font-medium mb-1">Giờ mở cửa</h4>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <span className="text-sm">05:30 - 22:30</span>
-                    </div>
+      {
+        selectedStation && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-white rounded-lg shadow-lg border p-4 z-20 animate-slide-up">
+            {(() => {
+              const station = getStationById(selectedStation);
+              if (!station) return null;
+
+              // Get line colors for badges
+              const getLineColor = (lineId: string) => {
+                switch (lineId) {
+                  case 'red': return 'bg-metro-red';
+                  case 'blue': return 'bg-metro-blue';
+                  case 'green': return 'bg-metro-green';
+                  case 'purple': return 'bg-metro-purple';
+                  case 'yellow': return 'bg-metro-yellow';
+                  case 'brown': return 'bg-metro-brown';
+                  default: return 'bg-metro-gray';
+                }
+              };
+
+              return (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium text-lg flex items-center gap-2">
+                      <svg width="20" height="20" viewBox="0 0 20 20">
+                        {station.isDepot ? (
+                          <rect x="5" y="5" width="10" height="10" className={`fill-metro-${station.lines[0]}`} />
+                        ) : (
+                          <circle cx="10" cy="10" r="6" className={`fill-metro-${station.lines[0]}`} />
+                        )}
+                      </svg>
+                      {station.name}
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedStation(null)}
+                      className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+                    >
+                      ✕
+                    </Button>
                   </div>
-                  
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <h4 className="text-xs uppercase text-muted-foreground font-medium mb-1">Tần suất</h4>
-                    <div className="flex items-center gap-2">
-                      <CalendarClock className="h-4 w-4 text-primary" />
-                      <span className="text-sm">5-10 phút</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-sm mb-3 bg-gray-50 p-3 rounded-lg">
-                  <h4 className="text-xs uppercase text-muted-foreground font-medium mb-1">Tiện ích tại trạm</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {station.facilities.map(f => {
-                      const facilityName = 
-                        f === 'elevator' ? 'Thang máy' :
-                        f === 'ticket-office' ? 'Phòng vé' :
-                        f === 'ticket-machine' ? 'Máy bán vé' :
-                        f === 'restroom' ? 'Nhà vệ sinh' : f;
-                      
+                  <p className="text-muted-foreground mb-3">{station.nameVi}</p>
+
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    {station.lines.map(line => {
+                      const metroLine = metroLines.find(l => l.id === line);
                       return (
-                        <span key={f} className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-xs border">
-                          {getFacilityIcon(f)}
-                          {facilityName}
-                        </span>
+                        <div
+                          key={line}
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium text-white ${getLineColor(line)}`}
+                        >
+                          {metroLine?.nameVi || ''}
+                        </div>
                       );
                     })}
+
+                    {station.isDepot && (
+                      <div className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-white">
+                        Depot
+                      </div>
+                    )}
+
+                    {station.isUnderground && (
+                      <div className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-white">
+                        Đường ngầm
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <h4 className="text-xs uppercase text-muted-foreground font-medium mb-1">Giờ mở cửa</h4>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="text-sm">05:30 - 22:30</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <h4 className="text-xs uppercase text-muted-foreground font-medium mb-1">Tần suất</h4>
+                      <div className="flex items-center gap-2">
+                        <CalendarClock className="h-4 w-4 text-primary" />
+                        <span className="text-sm">5-10 phút</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-sm mb-3 bg-gray-50 p-3 rounded-lg">
+                    <h4 className="text-xs uppercase text-muted-foreground font-medium mb-1">Tiện ích tại trạm</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {station.facilities.map(f => {
+                        const facilityName =
+                          f === 'elevator' ? 'Thang máy' :
+                            f === 'ticket-office' ? 'Phòng vé' :
+                              f === 'ticket-machine' ? 'Máy bán vé' :
+                                f === 'restroom' ? 'Nhà vệ sinh' : f;
+
+                        return (
+                          <span key={f} className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-xs border">
+                            {getFacilityIcon(f)}
+                            {facilityName}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between mt-2 pt-2 border-t">
+                    <Button variant="outline" size="sm" className="gap-1">
+                      <MapPin className="h-4 w-4" />
+                      Chỉ đường đến đây
+                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="default" size="sm" className="gap-1">
+                            <Clock className="h-4 w-4" />
+                            Xem lịch trình
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Xem lịch tàu tại trạm này</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
-                
-                <div className="flex justify-between mt-2 pt-2 border-t">
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <MapPin className="h-4 w-4" />
-                    Chỉ đường đến đây
-                  </Button>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="default" size="sm" className="gap-1">
-                          <Clock className="h-4 w-4" />
-                          Xem lịch trình
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Xem lịch tàu tại trạm này</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-    </div>
+              );
+            })()}
+          </div>
+        )
+      }
+    </div >
   );
 };
 

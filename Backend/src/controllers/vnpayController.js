@@ -5,7 +5,8 @@ const qs = require('qs');
 const config = require('../config/vnpay.json');
 const { console } = require('inspector');
 const { vnp_TmnCode, vnp_HashSecret, vnp_Url, vnp_ReturnUrl } = config;
-const Order = require('../models/order.model'); 
+const Order = require('../models/order.model');
+
 
 // Helper: Sắp xếp và encode tham số
 function sortObject(obj) {
@@ -17,8 +18,21 @@ function sortObject(obj) {
   return sorted;
 }
 
-// ========== CONTROLLER ==========
+const getExpiryDate = (ticketType) => {
+  const now = new Date();
+  switch (ticketType) {
+    case 'ngay':
+      return new Date(now.setDate(now.getDate() + 1));
+    case 'tuan':
+      return new Date(now.setDate(now.getDate() + 7));
+    case 'thang':
+      return new Date(now.setMonth(now.getMonth() + 1));
+    default:
+      return now;
+  }
+};
 
+// ========== CONTROLLER ==========
 
 exports.createPayment = (req, res) => {
   const date = new Date();
@@ -67,15 +81,15 @@ exports.vnpayReturn = (req, res) => {
   const signData = qs.stringify(sortedParams, { encode: false });
   const hmac = crypto.createHmac("sha512", vnp_HashSecret);
   const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
-  const orderId = params['vnp_TxnRef']; 
+  const orderId = params['vnp_TxnRef'];
 
   const isValid = secureHash === signed;
 
-  const baseRedirectUrl = "http://localhost:5713";  
-  
+  const baseRedirectUrl = "http://localhost:5713";
+
 
   if (isValid) {
-    const code = params['vnp_ResponseCode'];  
+    const code = params['vnp_ResponseCode'];
     const redirectUrl = code === '00'
       ? `${baseRedirectUrl}/payment/success?code=${code}&orderId=${orderId}`
       : `${baseRedirectUrl}/payment/fail?code=${code}&orderId=${orderId}`;
@@ -84,10 +98,9 @@ exports.vnpayReturn = (req, res) => {
     return res.redirect(redirectUrl);
 
   } else {
-    return res.redirect(`${baseRedirectUrl}/payment/fail?code=97`); 
+    return res.redirect(`${baseRedirectUrl}/payment/fail?code=97`);
   }
 };
-
 
 exports.vnpayIpn = async (req, res) => {
   let vnp_Params = req.query;
@@ -100,7 +113,7 @@ exports.vnpayIpn = async (req, res) => {
 
   vnp_Params = sortObject(vnp_Params);
 
-  const secretKey = vnp_HashSecret; 
+  const secretKey = vnp_HashSecret;
   const querystring = require('qs');
   let signData = querystring.stringify(vnp_Params, { encode: false });
   let crypto = require("crypto");
@@ -112,19 +125,39 @@ exports.vnpayIpn = async (req, res) => {
 
     if (order) {
       let checkAmount = parseInt(order.totalAmount * 100) === parseInt(vnp_Params['vnp_Amount']);
-        if (!checkAmount) {
-          return res.status(200).json({ RspCode: '04', Message: 'Amount invalid' });
-        }
+      if (!checkAmount) {
+        return res.status(200).json({ RspCode: '04', Message: 'Amount invalid' });
+      }
 
       let paymentStatus = order.paymentStatus;
       if (paymentStatus === 'pending') {
         if (rspCode === '00') {
           order.paymentStatus = 'paid';
-          order.save(); 
+          await order.save();
+
+          // Thêm vé vào lịch sử khi thanh toán thành công
+          try {
+            const validFrom = new Date();
+            const validTo = getExpiryDate(order.ticketType);
+
+            const ticketHistory = new TicketHistory({
+              userId: order.userId, // Lấy userId từ order
+              ticketType: order.ticketType,
+              price: order.totalPrice,
+              validFrom: validFrom,
+              validTo: validTo
+            });
+
+            await ticketHistory.save();
+            console.log('Đã thêm vé vào lịch sử:', ticketHistory);
+          } catch (error) {
+            console.error('Lỗi khi thêm vé vào lịch sử:', error);
+          }
+
           res.status(200).json({ RspCode: '00', Message: 'Success' });
         } else {
           order.paymentStatus = 'failed';
-          order.save(); 
+          await order.save();
           res.status(200).json({ RspCode: '00', Message: 'Success' });
         }
       } else {
